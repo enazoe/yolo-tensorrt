@@ -20,3 +20,4 @@ api/
 *.exe
 .vs/
 .vscode/
+*.log

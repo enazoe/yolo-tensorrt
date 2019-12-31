@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-the project is the encapsulation  of tensorrt yolo implementation. The origin code is [here](https://github.com/mj8ac/trt-yolo-app_win64). And you must have the trained yolo model(.weights) and cfg file from the darknet.
+the project is the encapsulation  of tensorrt yolo implementation. The origin code is [here](https://github.com/mj8ac/trt-yolo-app_win64). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
 |  model   | gpu  |precision|inference time|
 |  :----:  | :----:  |:---:|:--:|
@@ -10,6 +10,15 @@ the project is the encapsulation  of tensorrt yolo implementation. The origin co
 | yolov3-416x416  | gtx1050 |FLOAT32|50ms|
 | yolov3-416x416  | jetson nano (15w) |HALF(FP16)|250ms|
 ## INSTALL
+
+download the pretrained model 
+
+```
+git clone https://github.com/enazoe/yolo-tensorrt.git
+cd scripts/
+python3 download.py
+//python3.exe download
+```
 
 ### windows10
 
@@ -31,6 +40,7 @@ the project is the encapsulation  of tensorrt yolo implementation. The origin co
     mkdir build
     cd build/
     cmake ..
+    make
     ```
 the code generate the libdetector.so lib, and the test code
 

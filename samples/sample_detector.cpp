@@ -5,10 +5,12 @@ int main()
 {
 	Detector detector;
 	Config config;
+	config.file_model_cfg = "../configs/yolov3.cfg";
+	config.file_model_weights = "../configs/yolov3.weights";
 	config.inference_precison = FP32;
 	detector.init(config);
 
-	cv::Mat mat_image = cv::imread("data/0.jpg", cv::IMREAD_UNCHANGED);
+	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 
 	std::vector<Result> res;
 	detector.detect(mat_image, res);

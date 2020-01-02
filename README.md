@@ -23,7 +23,7 @@ std::vector<Result> res;
 detector.detect(mat_image, res)
 ```
 
-## INSTALL
+## How to use yolo-trt as DLL and SO libraries
 
 download the pretrained model 
 
@@ -60,6 +60,44 @@ the code generate the libdetector.so lib, and the test code
 
 
 __note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_
+
+## API
+
+```
+struct Config
+{
+	std::string file_model_cfg					= "configs/yolov3.cfg";
+
+	std::string file_model_weights				= "configs/yolov3.weights";
+
+	float detect_thresh							= 0.9;
+
+	ModelType	net_type						= YOLOV3;
+
+	Precision	inference_precison				= INT8;
+	
+	int	gpu_id									= 0;
+
+	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
+};
+
+class API Detector
+{
+public:
+	explicit Detector();
+	~Detector();
+
+	void init(const Config &config);
+
+	void detect(const cv::Mat &mat_image, std::vector<Result> &vec_result);
+
+private:
+	Detector(const Detector &);
+	const Detector &operator =(const Detector &);
+	class Impl;
+	Impl *_impl;
+};
+```
 
 ## REFERENCE
 

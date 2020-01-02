@@ -70,13 +70,13 @@ struct Config
 
 	std::string file_model_weights = "configs/yolov3.weights";
 
-	float detect_thresh	= 0.9;
+	float detect_thresh = 0.9;
 
-	ModelType	net_type = YOLOV3;
+	ModelType net_type = YOLOV3;
 
-	Precision	inference_precison = INT8;
+	Precision inference_precison = INT8;
 	
-	int	gpu_id = 0;
+	int gpu_id = 0;
 
 	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
 };

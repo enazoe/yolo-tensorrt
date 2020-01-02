@@ -9,6 +9,20 @@ the project is the encapsulation  of tensorrt yolo implementation. The origin co
 | yolov3-416x416  | gtx1050 |INT8|25ms|
 | yolov3-416x416  | gtx1050 |FLOAT32|50ms|
 | yolov3-416x416  | jetson nano (15w) |HALF(FP16)|250ms|
+
+user-friendly
+
+```c++
+Detector detector;
+Config config;
+config.inference_precison = FP32;
+detector.init(config);
+
+cv::Mat mat_image = cv::imread("dog.jpg");
+std::vector<Result> res;
+detector.detect(mat_image, res)
+```
+
 ## INSTALL
 
 download the pretrained model 

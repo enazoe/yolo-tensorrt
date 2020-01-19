@@ -78,21 +78,17 @@ public:
 	void detect(const cv::Mat		&mat_image,
 				std::vector<Result> &vec_result)
 	{
-
 		std::vector<DsImage> vec_ds_images;
 		vec_result.clear();
 		vec_ds_images.emplace_back(mat_image, _p_net->getInputH(), _p_net->getInputW());
-
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
-
 		_p_net->doInference(trtInput.data, vec_ds_images.size());
-
 		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
 			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
 			auto remaining = nmsAllClasses(_p_net->getNMSThresh(), binfo, _p_net->getNumClasses());
-			for (auto b : remaining)
+			for (const auto &b : remaining)
 			{
 				Result res;
 				res.id = b.label;

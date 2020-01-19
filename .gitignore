@@ -1,4 +1,5 @@
 build/
+*.cfg
 *.weights
 *.engine
 *.pdb

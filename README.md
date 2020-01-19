@@ -17,7 +17,7 @@ user-friendly
 ```c++
 Detector detector;
 Config config;
-config.inference_precison = FP32;
+config.inference_precison = INT8;
 detector.init(config);
 
 cv::Mat mat_image = cv::imread("dog.jpg");

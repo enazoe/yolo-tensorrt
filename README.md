@@ -4,11 +4,15 @@
 
 the project is the encapsulation  of tensorrt yolo implementation. The origin code is [here](https://github.com/mj8ac/trt-yolo-app_win64). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
-|  model   | gpu  |precision|inference time|
-|  :----:  | :----:  |:---:|:--:|
-| yolov3-416x416  | gtx1050 |INT8|25ms|
-| yolov3-416x416  | gtx1050 |FLOAT32|50ms|
-| yolov3-416x416  | jetson nano (15w) |HALF(FP16)|250ms|
+## PLATFORM
+
+|  model   | gpu  |precision|memory used|inference time|
+|  :----:  | :----:  |:---:|:--:|:--:|
+| yolov3-416x416  | gtx1050 |INT8||25ms|
+| yolov3-416x416  | gtx1050 |FLOAT32||50ms|
+| yolov3-608x608  | gtx1050 |INT8|~450M|~50ms|
+| yolov3-608x608  | gtx1050 |FLOAT32|~1000M|~95ms|
+| yolov3-416x416  | jetson nano (15w) |HALF(FP16)||250ms|
 
 ## WRAPPER
 

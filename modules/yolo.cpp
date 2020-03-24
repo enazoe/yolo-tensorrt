@@ -650,7 +650,6 @@ bool Yolo::verifyYoloEngine()
     {
         assert(!strcmp(m_Engine->getBindingName(tensor.bindingIndex), tensor.blobName.c_str())
                && "Blobs names dont match between cfg and engine file \n");
-        std::cout << "A " << get3DTensorVolume(m_Engine->getBindingDimensions(tensor.bindingIndex)) << "B" << tensor.volume<<std::endl;
         // assert(get3DTensorVolume(m_Engine->getBindingDimensions(tensor.bindingIndex))
                 //    == tensor.volume
             //    && "Tensor volumes dont match between cfg and engine file \n");

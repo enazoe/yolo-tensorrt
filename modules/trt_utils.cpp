@@ -607,6 +607,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     int w = inpDims.d[2];
     int stride = std::stoi(block.at("stride"));
     // add pre multiply matrix as a constant
+    std::cout << "H" << h << "W" << w << std::endl;
     nvinfer1::Dims preDims{3,
                            {1, stride * h, h},
                            {nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
@@ -614,7 +615,9 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     int size = stride * h * h;
     nvinfer1::Weights preMul{nvinfer1::DataType::kFLOAT, nullptr, size};
     float* preWt = new float[size];
-    /* (2*h * w)
+    memset(preWt, 0, sizeof(float)*size);
+
+    /* (2*h * h)
     [ [1, 0, ..., 0],
       [1, 0, ..., 0],
       [0, 1, ..., 0],
@@ -625,16 +628,25 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
       [0, 0, ..., 1] ]
     */
    
-    for (int i = 0, idx = 0; i < h; ++i)
-    {
-        for (int s = 0; s < stride; ++s)
-        {
-            for (int j = 0; j < h; ++j, ++idx)
-            {
-                preWt[idx] = (i == j) ? 1.0 : 0.0;
-            }
+    // for (int i = 0, idx = 0; i < h; ++i)
+    // {
+    //     for (int s = 0; s < stride; ++s)
+    //     {
+    //         for (int j = 0; j < h; ++j, ++idx)
+    //         {
+    //             preWt[idx] = (i == j) ? 1.0 : 0.0;
+    //         }
+    //     }
+    // }
+    for (int i = 0; i < stride; i ++) {
+        for (int j = 0; j < h; j ++) {
+            int _i1 = i * 2;
+            int _i2 = i * 2 + 1;
+            preWt[_i1*h + j] = 1;
+            preWt[_i2*h + j] = 1;
         }
     }
+
     preMul.values = preWt;
     trtWeights.push_back(preMul);
     nvinfer1::IConstantLayer* preM = network->addConstant(preDims, preMul);
@@ -649,6 +661,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     size = stride * w * w;
     nvinfer1::Weights postMul{nvinfer1::DataType::kFLOAT, nullptr, size};
     float* postWt = new float[size];
+    memset(postWt, 0, sizeof(float)*size);
     /* (h * 2*w)
     [ [1, 1, 0, 0, ..., 0, 0],
       [0, 0, 1, 1, ..., 0, 0],
@@ -656,13 +669,21 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
       ...,
       [0, 0, 0, 0, ..., 1, 1] ]
     */
-    for (int i = 0, idx = 0; i < w; ++i)
-    {
-        for (int j = 0; j < stride * w; ++j, ++idx)
-        {
-            postWt[idx] = (j / stride == i) ? 1.0 : 0.0;
+    // for (int i = 0, idx = 0; i < w; ++i)
+    // {
+    //     for (int j = 0; j < stride * w; ++j, ++idx)
+    //     {
+    //         postWt[idx] = (j / stride == i) ? 1.0 : 0.0;
+    //     }
+    // }
+
+    for (int i = 0; i < w; i ++) {
+        for (int j = 0; j < w; j ++) {
+            postWt[i*w + 2*j] = 1;
+            postWt[i*w + 2*j + 1] = 1;
         }
     }
+
     postMul.values = postWt;
     trtWeights.push_back(postMul);
     nvinfer1::IConstantLayer* post_m = network->addConstant(postDims, postMul);

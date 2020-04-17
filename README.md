@@ -63,9 +63,8 @@ python3 download.py
     cmake ..
     make
     ```
-the code generate the libdetector.so lib, and the test code
-
-If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you at scripts dir. 
+The project generate the libdetector.so lib, and the sample code.
+__If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir.__
 
 __note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_
 

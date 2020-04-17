@@ -16,8 +16,7 @@ the project is the encapsulation  of tensorrt yolo implementation. The origin co
 
 ## WRAPPER
 
-user-friendly
-
+Prepare the pretrained __.weights__ and __.cfg__ model. 
 ```c++
 Detector detector;
 Config config;
@@ -29,44 +28,36 @@ std::vector<Result> res;
 detector.detect(mat_image, res)
 ```
 
-## How to use yolo-trt as DLL and SO libraries
+## How to use yolo-trt as DLL or SO libraries
 
-download the pretrained model 
-
-```
-git clone https://github.com/enazoe/yolo-tensorrt.git
-cd scripts/
-python3 download.py
-//python3.exe download
-```
 
 ### windows10
 
-- requirements : cuda 10.0 , cudnn 7.5 , TensorRT 5.1.5 , opencv3.3 , gflags , vs2015
+- dependency : cuda 10.0 , cudnn 7.5 , TensorRT 5.1.5 , opencv3.3 , gflags , vs2015
 - build:
     
-    open _sln/sln.sln_ file 
-    - dll project : the interface of the trt yolo lib
+    open MSVC _sln/sln.sln_ file 
+    - dll project : the interface of the trt yolo dll
     - demo project : test of the dll
 
 ### ubuntu
 
 
 #### jetson nano 
-- requirements : gflags , JetPack 4.2.2
-- make
-    ```
-    sudo apt-get install libgflags-dev
-    cd yolo-tensorrt/
-    mkdir build
-    cd build/
-    cmake ..
-    make
-    ```
+dependency : gflags , JetPack 4.2.2
+
+```
+sudo apt-get install libgflags-dev
+cd yolo-tensorrt/
+mkdir build
+cd build/
+cmake ..
+make
+```
 The project generate the libdetector.so lib, and the sample code.
 __If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir.__
 
-__note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_
+__note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_ at cmake file.
 
 ## API
 

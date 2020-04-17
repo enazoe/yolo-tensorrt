@@ -51,6 +51,7 @@ python3 download.py
 
 ### ubuntu
 
+
 #### jetson nano 
 - requirements : gflags , JetPack 4.2.2
 - make
@@ -64,6 +65,7 @@ python3 download.py
     ```
 the code generate the libdetector.so lib, and the test code
 
+If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you at scripts dir. 
 
 __note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_
 

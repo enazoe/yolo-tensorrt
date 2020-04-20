@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-the project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
+The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
 ## PLATFORM
 
@@ -54,7 +54,7 @@ cd build/
 cmake ..
 make
 ```
-The project generate the libdetector.so lib, and the sample code.
+The project generate the __libdetector.so__ lib, and the sample code.
 _If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir._
 
 __note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_ at cmake file.

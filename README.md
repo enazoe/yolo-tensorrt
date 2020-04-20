@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-the project is the encapsulation  of tensorrt yolo implementation. The origin code is [here](https://github.com/mj8ac/trt-yolo-app_win64). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
+the project is the encapsulation  of nvidia official yolo tensorrt implementation. The origin code is [here](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
 ## PLATFORM
 

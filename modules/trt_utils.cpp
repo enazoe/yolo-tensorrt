@@ -583,13 +583,15 @@ nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx, std::map<std::string, std::str
     bn->setName(bnLayerName.c_str());
     /***** ACTIVATION LAYER *****/
     /****************************/
-    nvinfer1::IPlugin* leakyRELU = nvinfer1::plugin::createPReLUPlugin(0.1);
-    assert(leakyRELU != nullptr);
-    nvinfer1::ITensor* bnOutput = bn->getOutput(0);
-    nvinfer1::IPluginLayer* leaky = network->addPlugin(&bnOutput, 1, *leakyRELU);
-    assert(leaky != nullptr);
-    std::string leakyLayerName = "leaky_" + std::to_string(layerIdx);
-    leaky->setName(leakyLayerName.c_str());
+	auto leaky = network->addActivation(*bn->getOutput(0),nvinfer1::ActivationType::kLEAKY_RELU);
+	leaky->setAlpha(0.1);
+	/*nvinfer1::IPlugin* leakyRELU = nvinfer1::plugin::createPReLUPlugin(0.1);
+	assert(leakyRELU != nullptr);
+	nvinfer1::ITensor* bnOutput = bn->getOutput(0);
+	nvinfer1::IPluginLayer* leaky = network->addPlugin(&bnOutput, 1, *leakyRELU);*/
+	assert(leaky != nullptr);
+	std::string leakyLayerName = "leaky_" + std::to_string(layerIdx);
+	leaky->setName(leakyLayerName.c_str());
 
     return leaky;
 }

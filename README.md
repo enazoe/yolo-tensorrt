@@ -33,7 +33,7 @@ detector.detect(mat_image, res)
 
 ### windows10
 
-- dependency : cuda 10.0 , cudnn 7.5 , TensorRT 5.1.5 , opencv3.3 , gflags , vs2015
+- dependency : cuda 10.0 , cudnn 7.5 , TensorRT 7.1.3.4 , opencv3.3 , gflags , vs2015
 - build:
     
     open MSVC _sln/sln.sln_ file 

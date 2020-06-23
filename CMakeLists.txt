@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1) 
+cmake_minimum_required(VERSION 10.1) 
 project(yolov3-trt)            
 
 file(GLOB_RECURSE sources     	modules/*.hpp modules/*.cpp modules/*.h modules/*.cu extra/*.h)
@@ -32,7 +32,7 @@ find_package(OpenCV REQUIRED)
 
 #generate detector lib
 cuda_add_library(detector SHARED ${sources})
-target_include_directories(detector PRIVATE modules/ ${OpenCV_INCLUDE_DIRS} ${CUDA_TOOLKIT_ROOT_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+target_include_directories(detector PRIVATE extra/ modules/ ${OpenCV_INCLUDE_DIRS} ${CUDA_TOOLKIT_ROOT_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(detector nvinfer nvinfer_plugin nvcaffe_parser gflags "stdc++fs")
 				  
 target_include_directories(yolov3-trt PRIVATE modules/ extra/)

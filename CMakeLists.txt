@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 10.1) 
+cmake_minimum_required(VERSION 3.1) 
 project(yolov3-trt)            
 
 file(GLOB_RECURSE sources     	modules/*.hpp modules/*.cpp modules/*.h modules/*.cu extra/*.h)

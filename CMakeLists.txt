@@ -20,11 +20,11 @@ message("-- CUDA version:${CUDA_VERSION}")
 
 if(CUDA_VERSION_MAJOR GREATER 9)
 	message("-- CUDA ${CUDA_VERSION_MAJOR} detected")
-	#	set(
-	#	CUDA_NVCC_FLAGS
-	#	${CUDA_NVCC_FLAGS}; 
-	#	-gencode arch=compute_53,code=sm_53
-	#	)
+		set(
+		CUDA_NVCC_FLAGS
+		${CUDA_NVCC_FLAGS}; 
+		-gencode arch=compute_72,code=sm_72
+		)
 endif()
 
 find_package(OpenCV REQUIRED)

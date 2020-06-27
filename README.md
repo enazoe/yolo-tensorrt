@@ -54,15 +54,17 @@ make
 The project generate the __libdetector.so__ lib, and the sample code.
 _If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir._
 
-#### jetson nano 
-dependency : gflags , JetPack 4.2.2
+- jetson nano 
+	
+	dependency : gflags , JetPack 4.2.2
 
-__note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_ at cmake file.
+	__note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_ at cmake file.
 
-#### jetson xavier nx
-dependency : gflags , JetPack 4.4
+- jetson xavier nx
+	
+	dependency : gflags , JetPack 4.4
 
-__note:__ when the platform is jetson-xavier-nx the gencode arch must be set _compute_72,code=sm_72_ at cmake file.
+	__note:__ when the platform is jetson-xavier-nx the gencode arch must be set _compute_72,code=sm_72_ at cmake file.
 
 ## API
 

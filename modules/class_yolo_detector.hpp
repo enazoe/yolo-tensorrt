@@ -158,7 +158,6 @@ private:
 	Config _config;
 	NetworkInfo _yolo_info;
 	InferParams _infer_param;
-
 	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny" };
 	std::vector<std::string> _vec_precision{ "kINT8","kHALF","kFLOAT" };
 	std::unique_ptr<Yolo> _p_net = nullptr;

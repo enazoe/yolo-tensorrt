@@ -35,7 +35,7 @@ SOFTWARE.
 #include <stdint.h>
 #include <string>
 #include <vector>
-
+#include "class_timer.hpp"
 /**
  * Holds all the file paths required to build a network.
  */
@@ -177,6 +177,10 @@ private:
     bool verifyYoloEngine();
     void destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights);
     void writePlanFileToDisk();
+
+private:
+	Timer _timer;
+
 };
 
 #endif // _YOLO_H_

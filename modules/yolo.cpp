@@ -178,7 +178,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 
         if (m_configBlocks.at(i).at("type") == "net")
         {
-          //  printLayerInfo("", "layer", "     inp_size", "     out_size", "weightPtr");
+            printLayerInfo("", "layer", "     inp_size", "     out_size", "weightPtr");
         }
         else if (m_configBlocks.at(i).at("type") == "convolutional")
         {
@@ -203,7 +203,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             channels = getNumChannels(previous);
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(out->getOutput(0));
-        //    printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
+            printLayerInfo(layerIndex, layerType, inputVol, outputVol, std::to_string(weightPtr));
         }
         else if (m_configBlocks.at(i).at("type") == "shortcut")
         {
@@ -226,7 +226,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             assert(previous != nullptr);
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(ew->getOutput(0));
-         //   printLayerInfo(layerIndex, "skip", inputVol, outputVol, "    -");
+            printLayerInfo(layerIndex, "skip", inputVol, outputVol, "    -");
         }
         else if (m_configBlocks.at(i).at("type") == "yolo")
         {
@@ -256,7 +256,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             m_Network->markOutput(*previous);
             channels = getNumChannels(previous);
             tensorOutputs.push_back(yolo->getOutput(0));
-         //   printLayerInfo(layerIndex, "yolo", inputVol, outputVol, std::to_string(weightPtr));
+            printLayerInfo(layerIndex, "yolo", inputVol, outputVol, std::to_string(weightPtr));
             ++outputTensorCount;
         }
         //else if (m_configBlocks.at(i).at("type") == "region")
@@ -347,7 +347,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 channels
                     = getNumChannels(tensorOutputs[idx1]) + getNumChannels(tensorOutputs[idx2]);
                 tensorOutputs.push_back(concat->getOutput(0));
-           //     printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
+                printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
             }
             else
             {
@@ -363,7 +363,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 // set the output volume depth
                 channels = getNumChannels(tensorOutputs[idx]);
                 tensorOutputs.push_back(tensorOutputs[idx]);
-             //   printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
+                printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
             }
         }
         else if (m_configBlocks.at(i).at("type") == "upsample")
@@ -374,7 +374,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             previous = out->getOutput(0);
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(out->getOutput(0));
-         //   printLayerInfo(layerIndex, "upsample", inputVol, outputVol, "    -");
+            printLayerInfo(layerIndex, "upsample", inputVol, outputVol, "    -");
         }
         else if (m_configBlocks.at(i).at("type") == "maxpool")
         {
@@ -389,7 +389,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             assert(previous != nullptr);
             std::string outputVol = dimsToString(previous->getDimensions());
             tensorOutputs.push_back(out->getOutput(0));
-        //    printLayerInfo(layerIndex, "maxpool", inputVol, outputVol, std::to_string(weightPtr));
+            printLayerInfo(layerIndex, "maxpool", inputVol, outputVol, std::to_string(weightPtr));
         }
         else
         {
@@ -469,9 +469,8 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
     NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
                                   batchSize * m_InputSize * sizeof(float), cudaMemcpyHostToDevice,
                                   m_CudaStream));
-
+	
     m_Context->enqueue(batchSize, m_DeviceBuffers.data(), m_CudaStream, nullptr);
-
     for (auto& tensor : m_OutputTensors)
     {
         NV_CUDA_CHECK(cudaMemcpyAsync(tensor.hostBuffer, m_DeviceBuffers.at(tensor.bindingIndex),
@@ -479,6 +478,7 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
                                       cudaMemcpyDeviceToHost, m_CudaStream));
     }
     cudaStreamSynchronize(m_CudaStream);
+	
 }
 
 std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx, const int& imageH,
@@ -690,3 +690,4 @@ void Yolo::writePlanFileToDisk()
 
     std::cout << "Serialized plan file cached at location : " << m_EnginePath << std::endl;
 }
+

@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\samples\sample_detector.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\extra\class_timer.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AE9921FC-C594-4C41-925A-5582896BD2A8}</ProjectGuid>
     <RootNamespace>test_dll</RootNamespace>

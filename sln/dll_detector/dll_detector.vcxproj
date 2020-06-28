@@ -119,6 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\extra\class_timer.hpp" />
     <ClInclude Include="..\..\modules\class_detector.h" />
     <ClInclude Include="..\..\modules\class_yolo_detector.hpp" />
   </ItemGroup>

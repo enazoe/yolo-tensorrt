@@ -21,6 +21,9 @@
     <ClInclude Include="..\..\modules\class_yolo_detector.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\extra\class_timer.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\modules\calibrator.cpp">

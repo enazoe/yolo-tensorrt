@@ -6,7 +6,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 ## PLATFORM
 
-|  model   | gpu  |precision|memory used|inference time|
+|  model   | gpu  |precision|memory used|detect time|
 |  :----:  | :----:  |:---:|:--:|:--:|
 | yolov3-416x416  | gtx1050 |INT8||25ms|
 | yolov3-416x416  | gtx1050 |FLOAT32||50ms|
@@ -35,7 +35,7 @@ detector.detect(mat_image, res)
 
 - dependency : cuda 10.0 , cudnn 7.5 , TensorRT 7.1.3.4 , opencv3.3 , gflags , vs2015
 - build:
-    
+  
     open MSVC _sln/sln.sln_ file 
     - dll project : the interface of the trt yolo dll
     - demo project : test of the dll

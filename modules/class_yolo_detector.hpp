@@ -7,6 +7,7 @@
 #include "yolo.h"
 #include "yolov2.h"
 #include "yolov3.h"
+#include "yolov4.h"
 
 #include <experimental/filesystem>
 #include <fstream>
@@ -148,6 +149,10 @@ private:
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV3(1, _yolo_info, _infer_param) };
 		}
+		else if ((_config.net_type == YOLOV4) || (_config.net_type == YOLOV4_TINY))
+		{
+			_p_net = std::unique_ptr<Yolo>{ new YoloV4(1,_yolo_info,_infer_param) };
+		}
 		else
 		{
 			assert(false && "Unrecognised network_type. Network Type has to be one among the following : yolov2, yolov2-tiny, yolov3 and yolov3-tiny");
@@ -158,7 +163,7 @@ private:
 	Config _config;
 	NetworkInfo _yolo_info;
 	InferParams _infer_param;
-	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny" };
+	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny","yolov4","yolov4-tiny" };
 	std::vector<std::string> _vec_precision{ "kINT8","kHALF","kFLOAT" };
 	std::unique_ptr<Yolo> _p_net = nullptr;
 };

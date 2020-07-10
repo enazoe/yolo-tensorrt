@@ -31,11 +31,16 @@ SOFTWARE.
 #include "trt_utils.h"
 
 #include "NvInfer.h"
-
+#include "NvInferPlugin.h"
+#include "NvInferRuntimeCommon.h"
+#include "cuda_runtime_api.h"
 #include <stdint.h>
 #include <string>
 #include <vector>
 #include "class_timer.hpp"
+
+//#include "logging.h"
+
 /**
  * Holds all the file paths required to build a network.
  */
@@ -81,6 +86,7 @@ struct TensorInfo
     int bindingIndex{-1};
     float* hostBuffer{nullptr};
 };
+
 
 class Yolo
 {
@@ -130,12 +136,11 @@ protected:
         67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90};
     const bool m_PrintPerfInfo;
     const bool m_PrintPredictions;
-    Logger m_Logger;
-
     // TRT specific members
+	//Logger glogger;
     const uint32_t m_BatchSize;
     nvinfer1::INetworkDefinition* m_Network;
-    nvinfer1::IBuilder* m_Builder;
+    nvinfer1::IBuilder* m_Builder ;
     nvinfer1::IHostMemory* m_ModelStream;
     nvinfer1::ICudaEngine* m_Engine;
     nvinfer1::IExecutionContext* m_Context;
@@ -169,6 +174,7 @@ protected:
     };
 
 private:
+    Logger m_Logger;
     void createYOLOEngine(const nvinfer1::DataType dataType = nvinfer1::DataType::kFLOAT,
                           Int8EntropyCalibrator* calibrator = nullptr);
     std::vector<std::map<std::string, std::string>> parseConfigFile(const std::string cfgFilePath);

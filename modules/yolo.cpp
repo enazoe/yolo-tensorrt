@@ -24,7 +24,8 @@ SOFTWARE.
 */
 
 #include "yolo.h"
-
+#include <memory>
+#include <vector>
 #include <fstream>
 
 Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const InferParams& inferParams) :
@@ -83,6 +84,9 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
         std::cout << "Unrecognized precision type " << m_Precision << std::endl;
         assert(0);
     }
+	if (m_NetworkType == "yolov4" || m_NetworkType  == "yolov4-tiny")
+	{
+	}
     assert(m_PluginFactory != nullptr);
     m_Engine = loadTRTEngine(m_EnginePath, m_PluginFactory, m_Logger);
     assert(m_Engine != nullptr);
@@ -122,15 +126,31 @@ Yolo::~Yolo()
     m_TinyMaxpoolPaddingFormula.reset();
 }
 
+std::vector<int> split_layer_index(const std::string &s_,const std::string &delimiter_)
+{
+	std::vector<int> index;
+	std::string s = s_;
+	size_t pos = 0;
+	std::string token;
+	while ((pos = s.find(delimiter_)) != std::string::npos) 
+	{
+		token = s.substr(0, pos);
+		index.push_back(std::stoi(trim(token)));
+		s.erase(0, pos + delimiter_.length());
+	}
+	index.push_back(std::stoi(trim(s)));
+	return index;
+}
+
 void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibrator* calibrator)
 {
     std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
     std::vector<nvinfer1::Weights> trtWeights;
     int weightPtr = 0;
     int channels = m_InputC;
-    m_Builder = nvinfer1::createInferBuilder(m_Logger);
-    m_Network = m_Builder->createNetwork();
-
+	m_Builder = nvinfer1::createInferBuilder(m_Logger);
+	nvinfer1::IBuilderConfig* config = m_Builder->createBuilderConfig();
+    m_Network = m_Builder->createNetworkV2(0U);
     if ((dataType == nvinfer1::DataType::kINT8 && !m_Builder->platformHasFastInt8())
         || (dataType == nvinfer1::DataType::kHALF && !m_Builder->platformHasFastFp16()))
     {
@@ -166,13 +186,13 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     uint32_t outputTensorCount = 0;
 
     // Set the output dimensions formula for pooling layers
-    assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
-    m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());
+   /* assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
+	m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());*/
 
     // build the network using the network API
     for (uint32_t i = 0; i < m_configBlocks.size(); ++i)
     {
-        // check if num. of channels is correct
+		// check if num. of channels is correct
         assert(getNumChannels(previous) == channels);
         std::string layerIndex = "(" + std::to_string(i) + ")";
 
@@ -185,14 +205,28 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out;
             std::string layerType;
+			//check activation
+			std::string activation = "";
+			if (m_configBlocks.at(i).find("activation") != m_configBlocks.at(i).end())
+			{
+				activation = m_configBlocks[i]["activation"];
+			}
             // check if batch_norm enabled
-            if (m_configBlocks.at(i).find("batch_normalize") != m_configBlocks.at(i).end())
+            if ((m_configBlocks.at(i).find("batch_normalize") != m_configBlocks.at(i).end()) &&
+				("leaky" == activation))
             {
                 out = netAddConvBNLeaky(i, m_configBlocks.at(i), weights, trtWeights, weightPtr,
                                         channels, previous, m_Network);
                 layerType = "conv-bn-leaky";
             }
-            else
+			else if ((m_configBlocks.at(i).find("batch_normalize") != m_configBlocks.at(i).end()) &&
+				("mish" == activation))
+			{
+				out = net_conv_bn_mish(i, m_configBlocks.at(i), weights, trtWeights, weightPtr,
+										channels, previous, m_Network);
+				layerType = "conv-bn-mish";
+			}
+            else// if("linear" == activation)
             {
                 out = netAddConvLinear(i, m_configBlocks.at(i), weights, trtWeights, weightPtr,
                                        channels, previous, m_Network);
@@ -317,24 +351,40 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             size_t found = m_configBlocks.at(i).at("layers").find(",");
             if (found != std::string::npos)
             {
-                int idx1 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(0, found)));
-                int idx2 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(found + 1)));
-                if (idx1 < 0)
-                {
-                    idx1 = tensorOutputs.size() + idx1;
-                }
-                if (idx2 < 0)
-                {
-                    idx2 = tensorOutputs.size() + idx2;
-                }
-                assert(idx1 < static_cast<int>(tensorOutputs.size()) && idx1 >= 0);
-                assert(idx2 < static_cast<int>(tensorOutputs.size()) && idx2 >= 0);
+				/*int idx1 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(0, found)));
+				int idx2 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(found + 1)));
+				if (idx1 < 0)
+				{
+					idx1 = tensorOutputs.size() + idx1;
+				}
+				if (idx2 < 0)
+				{
+					idx2 = tensorOutputs.size() + idx2;
+				}
+				assert(idx1 < static_cast<int>(tensorOutputs.size()) && idx1 >= 0);
+				assert(idx2 < static_cast<int>(tensorOutputs.size()) && idx2 >= 0);*/
+				///----------------
+				std::vector<int> vec_index = split_layer_index(m_configBlocks.at(i).at("layers"), ",");
+				for (auto &ind_layer:vec_index)
+				{
+					if (ind_layer < 0)
+					{
+						ind_layer = tensorOutputs.size() + ind_layer;
+					}
+					assert(ind_layer < static_cast<int>(tensorOutputs.size()) && ind_layer >= 0);
+				}
+
+
                 nvinfer1::ITensor** concatInputs
-                    = reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * 2));
-                concatInputs[0] = tensorOutputs[idx1];
-                concatInputs[1] = tensorOutputs[idx2];
+                    = reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * vec_index.size()));
+             //   concatInputs[0] = tensorOutputs[idx1];
+             //   concatInputs[1] = tensorOutputs[idx2];
+				for (int ind=0;ind<vec_index.size();++ind)
+				{
+					concatInputs[ind] = tensorOutputs[vec_index[ind]];
+				}
                 nvinfer1::IConcatenationLayer* concat
-                    = m_Network->addConcatenation(concatInputs, 2);
+                    = m_Network->addConcatenation(concatInputs, vec_index.size());
                 assert(concat != nullptr);
                 std::string concatLayerName = "route_" + std::to_string(i - 1);
                 concat->setName(concatLayerName.c_str());
@@ -344,8 +394,14 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 assert(previous != nullptr);
                 std::string outputVol = dimsToString(previous->getDimensions());
                 // set the output volume depth
-                channels
-                    = getNumChannels(tensorOutputs[idx1]) + getNumChannels(tensorOutputs[idx2]);
+                /*channels
+                    = getNumChannels(tensorOutputs[idx1]) + getNumChannels(tensorOutputs[idx2]);*/
+				int nums = 0;
+				for (auto &indx:vec_index)
+				{
+					nums += getNumChannels(tensorOutputs[indx]);
+				}
+				channels = nums;
                 tensorOutputs.push_back(concat->getOutput(0));
                 printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
             }
@@ -426,12 +482,15 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     if (dataType == nvinfer1::DataType::kINT8)
     {
         assert((calibrator != nullptr) && "Invalid calibrator for INT8 precision");
-        m_Builder->setInt8Mode(true);
-        m_Builder->setInt8Calibrator(calibrator);
+      //  m_Builder->setInt8Mode(true);
+		config->setFlag(nvinfer1::BuilderFlag::kINT8);
+     //   m_Builder->setInt8Calibrator(calibrator);
+		config->setInt8Calibrator(calibrator);
     }
     else if (dataType == nvinfer1::DataType::kHALF)
     {
-        m_Builder->setHalf2Mode(true);
+		config->setFlag(nvinfer1::BuilderFlag::kFP16);
+     //   m_Builder->setHalf2Mode(true);
     }
 
     m_Builder->allowGPUFallback(true);
@@ -452,7 +511,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 
     // Build the engine
     std::cout << "Building the TensorRT Engine..." << std::endl;
-    m_Engine = m_Builder->buildCudaEngine(*m_Network);
+    m_Engine = m_Builder->buildEngineWithConfig(*m_Network,*config);
     assert(m_Engine != nullptr);
     std::cout << "Building complete!" << std::endl;
 
@@ -462,6 +521,8 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     // destroy
     destroyNetworkUtils(trtWeights);
 }
+
+
 
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
@@ -578,7 +639,10 @@ void Yolo::parseConfigBlocks()
                 }
             }
 
-            if ((m_NetworkType == "yolov3") || (m_NetworkType == "yolov3-tiny"))
+            if ((m_NetworkType == "yolov3") ||
+				(m_NetworkType == "yolov3-tiny") ||
+				(m_NetworkType == "yolov4") ||
+				(m_NetworkType == "yolov4-tiny"))
             {
                 assert((block.find("mask") != block.end())
                        && std::string("Missing 'mask' param in " + block.at("type") + " layer")

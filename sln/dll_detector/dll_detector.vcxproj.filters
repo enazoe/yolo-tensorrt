@@ -56,9 +56,15 @@
     <ClCompile Include="..\..\modules\class_detector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\modules\yolov4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\modules\kernel.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\..\modules\mish.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

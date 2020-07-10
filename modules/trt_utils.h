@@ -35,6 +35,7 @@ SOFTWARE.
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "mish.h"
 #include <set>
 
 #include "NvInfer.h"
@@ -42,6 +43,7 @@ SOFTWARE.
 #include "ds_image.h"
 #include "plugin_factory.h"
 
+//#include "logging.h"
 class DsImage;
 struct BBox
 {
@@ -59,6 +61,20 @@ struct BBoxInfo
 class Logger : public nvinfer1::ILogger
 {
 public:
+	Logger(Severity severity = Severity::kWARNING)
+	{
+
+	}
+
+	~Logger()
+	{
+
+	}
+	nvinfer1::ILogger& getTRTLogger()
+	{
+		return *this;
+	}
+
     void log(nvinfer1::ILogger::Severity severity, const char* msg) override
     {
         // suppress info-level messages
@@ -147,6 +163,16 @@ nvinfer1::ILayer* netAddConvLinear(int layerIdx, std::map<std::string, std::stri
                                    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr,
                                    int& inputChannels, nvinfer1::ITensor* input,
                                    nvinfer1::INetworkDefinition* network);
+
+nvinfer1::ILayer* net_conv_bn_mish(int layerIdx,
+	std::map<std::string, std::string>& block,
+	std::vector<float>& weights,
+	std::vector<nvinfer1::Weights>& trtWeights,
+	int& weightPtr,
+	int& inputChannels,
+	nvinfer1::ITensor* input,
+	nvinfer1::INetworkDefinition* network);
+
 nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx, std::map<std::string, std::string>& block,
                                     std::vector<float>& weights,
                                     std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr,

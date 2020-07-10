@@ -24,10 +24,12 @@ SOFTWARE.
 */
 
 #include "trt_utils.h"
-
+#include <NvInferRuntimeCommon.h>
 #include <experimental/filesystem>
 #include <fstream>
 #include <iomanip>
+using namespace nvinfer1;
+REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
 						const int& inputH,
@@ -285,22 +287,7 @@ std::vector<float> loadWeights(const std::string weightsFilePath, const std::str
 {
     assert(fileExists(weightsFilePath));
     std::cout << "Loading pre-trained weights..." << std::endl;
-    //std::ifstream file(weightsFilePath, std::ios_base::binary);
-    //assert(file.good());
-    //std::string line;
-
-    //if (networkType == "yolov2")
-    //{
-    //    // Remove 4 int32 bytes of data from the stream belonging to the header
-    //    file.ignore(4 * 4);
-    //}
-    //else if ((networkType == "yolov3") || (networkType == "yolov3-tiny")
-    //         || (networkType == "yolov2-tiny"))
-    //{
-    //    // Remove 5 int32 bytes of data from the stream belonging to the header
-    //    file.ignore(4 * 5);
-    //}
-	std::ifstream file(weightsFilePath, std::ios_base::binary);
+    std::ifstream file(weightsFilePath, std::ios_base::binary);
 	assert(file.good());
 	std::string line;
 	file.ignore(4);
@@ -390,10 +377,13 @@ nvinfer1::ILayer* netAddMaxpool(int layerIdx, std::map<std::string, std::string>
     int stride = std::stoi(block.at("stride"));
 
     nvinfer1::IPoolingLayer* pool
-        = network->addPooling(*input, nvinfer1::PoolingType::kMAX, nvinfer1::DimsHW{size, size});
+        = network->addPoolingNd(*input, nvinfer1::PoolingType::kMAX, nvinfer1::DimsHW{size, size});
     assert(pool);
     std::string maxpoolLayerName = "maxpool_" + std::to_string(layerIdx);
-    pool->setStride(nvinfer1::DimsHW{stride, stride});
+	int pad = (size - 1) / 2;
+	std::cout << "pad:" << pad << std::endl;
+	pool->setPaddingNd(nvinfer1::DimsHW{pad,pad});
+    pool->setStrideNd(nvinfer1::DimsHW{stride, stride});
     pool->setName(maxpoolLayerName.c_str());
 
     return pool;
@@ -452,6 +442,146 @@ nvinfer1::ILayer* netAddConvLinear(int layerIdx, std::map<std::string, std::stri
     conv->setPadding(nvinfer1::DimsHW{pad, pad});
 
     return conv;
+}
+
+nvinfer1::ILayer* net_conv_bn_mish(int layerIdx, 
+	std::map<std::string, std::string>& block,
+	std::vector<float>& weights,
+	std::vector<nvinfer1::Weights>& trtWeights,
+	int& weightPtr,
+	int& inputChannels,
+	nvinfer1::ITensor* input,
+	nvinfer1::INetworkDefinition* network)
+{
+	assert(block.at("type") == "convolutional");
+	assert(block.find("batch_normalize") != block.end());
+	assert(block.at("batch_normalize") == "1");
+	assert(block.at("activation") == "mish");
+	assert(block.find("filters") != block.end());
+	assert(block.find("pad") != block.end());
+	assert(block.find("size") != block.end());
+	assert(block.find("stride") != block.end());
+
+	bool batchNormalize, bias;
+	if (block.find("batch_normalize") != block.end())
+	{
+		batchNormalize = (block.at("batch_normalize") == "1");
+		bias = false;
+	}
+	else
+	{
+		batchNormalize = false;
+		bias = true;
+	}
+	// all conv_bn_leaky layers assume bias is false
+	assert(batchNormalize == true && bias == false);
+
+	int filters = std::stoi(block.at("filters"));
+	int padding = std::stoi(block.at("pad"));
+	int kernelSize = std::stoi(block.at("size"));
+	int stride = std::stoi(block.at("stride"));
+	int pad;
+	if (padding)
+		pad = (kernelSize - 1) / 2;
+	else
+		pad = 0;
+
+	/***** CONVOLUTION LAYER *****/
+	/*****************************/
+	// batch norm weights are before the conv layer
+	// load BN biases (bn_biases)
+	std::vector<float> bnBiases;
+	for (int i = 0; i < filters; ++i)
+	{
+		bnBiases.push_back(weights[weightPtr]);
+		weightPtr++;
+	}
+	// load BN weights
+	std::vector<float> bnWeights;
+	for (int i = 0; i < filters; ++i)
+	{
+		bnWeights.push_back(weights[weightPtr]);
+		weightPtr++;
+	}
+	// load BN running_mean
+	std::vector<float> bnRunningMean;
+	for (int i = 0; i < filters; ++i)
+	{
+		bnRunningMean.push_back(weights[weightPtr]);
+		weightPtr++;
+	}
+	// load BN running_var
+	std::vector<float> bnRunningVar;
+	for (int i = 0; i < filters; ++i)
+	{
+		// 1e-05 for numerical stability
+		bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+		weightPtr++;
+	}
+	// load Conv layer weights (GKCRS)
+	int size = filters * inputChannels * kernelSize * kernelSize;
+	nvinfer1::Weights convWt{ nvinfer1::DataType::kFLOAT, nullptr, size };
+	float* val = new float[size];
+	for (int i = 0; i < size; ++i)
+	{
+		val[i] = weights[weightPtr];
+		weightPtr++;
+	}
+	convWt.values = val;
+	trtWeights.push_back(convWt);
+	nvinfer1::Weights convBias{ nvinfer1::DataType::kFLOAT, nullptr, 0 };
+	trtWeights.push_back(convBias);
+	nvinfer1::IConvolutionLayer* conv = network->addConvolution(
+		*input, filters, nvinfer1::DimsHW{ kernelSize, kernelSize }, convWt, convBias);
+	assert(conv != nullptr);
+	std::string convLayerName = "conv_" + std::to_string(layerIdx);
+	conv->setName(convLayerName.c_str());
+	conv->setStride(nvinfer1::DimsHW{ stride, stride });
+	conv->setPadding(nvinfer1::DimsHW{ pad, pad });
+
+	/***** BATCHNORM LAYER *****/
+	/***************************/
+	size = filters;
+	// create the weights
+	nvinfer1::Weights shift{ nvinfer1::DataType::kFLOAT, nullptr, size };
+	nvinfer1::Weights scale{ nvinfer1::DataType::kFLOAT, nullptr, size };
+	nvinfer1::Weights power{ nvinfer1::DataType::kFLOAT, nullptr, size };
+	float* shiftWt = new float[size];
+	for (int i = 0; i < size; ++i)
+	{
+		shiftWt[i]
+			= bnBiases.at(i) - ((bnRunningMean.at(i) * bnWeights.at(i)) / bnRunningVar.at(i));
+	}
+	shift.values = shiftWt;
+	float* scaleWt = new float[size];
+	for (int i = 0; i < size; ++i)
+	{
+		scaleWt[i] = bnWeights.at(i) / bnRunningVar[i];
+	}
+	scale.values = scaleWt;
+	float* powerWt = new float[size];
+	for (int i = 0; i < size; ++i)
+	{
+		powerWt[i] = 1.0;
+	}
+	power.values = powerWt;
+	trtWeights.push_back(shift);
+	trtWeights.push_back(scale);
+	trtWeights.push_back(power);
+	// Add the batch norm layers
+	nvinfer1::IScaleLayer* bn = network->addScale(
+		*conv->getOutput(0), nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
+	assert(bn != nullptr);
+	std::string bnLayerName = "batch_norm_" + std::to_string(layerIdx);
+	bn->setName(bnLayerName.c_str());
+	/***** ACTIVATION LAYER *****/
+	/****************************/
+	auto creator = getPluginRegistry()->getPluginCreator("Mish_TRT", "1");
+	const nvinfer1::PluginFieldCollection* pluginData = creator->getFieldNames();
+	nvinfer1::IPluginV2 *pluginObj = creator->createPlugin(("mish" + std::to_string(layerIdx)).c_str(), pluginData);
+	nvinfer1::ITensor* inputTensors[] = { bn->getOutput(0) };
+	auto mish = network->addPluginV2(&inputTensors[0], 1, *pluginObj);
+	return mish;
 }
 
 nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx, std::map<std::string, std::string>& block,

@@ -17,7 +17,9 @@ enum ModelType
 	YOLOV2 = 0,
 	YOLOV3,
 	YOLOV2_TINY,
-	YOLOV3_TINY
+	YOLOV3_TINY,
+	YOLOV4,
+	YOLOV4_TINY
 };
 
 enum Precision

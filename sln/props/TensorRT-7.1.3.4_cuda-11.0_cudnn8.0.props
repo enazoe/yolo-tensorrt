@@ -9,7 +9,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\dependency\TensorRT-7.1.3.4_cuda-11.0.cudnn8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nvinfer.lib;nvinfer_plugin.lib;nvonnxparser.lib;nvparsers.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nvinfer.lib;nvinfer_plugin.lib;nvonnxparser.lib;nvparsers.lib;myelin64_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

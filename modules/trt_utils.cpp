@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 #include "trt_utils.h"
+#include "class_yolo_detector.hpp"
 #include <NvInferRuntimeCommon.h>
 #include <experimental/filesystem>
 #include <fstream>
@@ -177,8 +178,10 @@ std::vector<std::string> loadImageList(const std::string filename, const std::st
     return fileList;
 }
 
-std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh, std::vector<BBoxInfo>& binfo,
-                                    const uint32_t numClasses)
+std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
+									std::vector<BBoxInfo>& binfo,
+                                    const uint32_t numClasses,
+								 const ModelType model_type)
 {
     std::vector<BBoxInfo> result;
     std::vector<std::vector<BBoxInfo>> splitBoxes(numClasses);
@@ -189,11 +192,23 @@ std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh, std::vector<BBoxInfo>
 
     for (auto& boxes : splitBoxes)
     {
-        boxes = nonMaximumSuppression(nmsThresh, boxes);
+		if ((YOLOV4 == model_type)||(YOLOV4_TINY == model_type))
+		{
+			boxes =	diou_nms(nmsThresh, binfo);
+		}
+		else
+		{
+			boxes = nonMaximumSuppression(nmsThresh, boxes);
+		}
         result.insert(result.end(), boxes.begin(), boxes.end());
     }
 
     return result;
+}
+
+std::vector<BBoxInfo> diou_nms(const float numThresh, std::vector<BBoxInfo> binfo)
+{
+
 }
 
 std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<BBoxInfo> binfo)

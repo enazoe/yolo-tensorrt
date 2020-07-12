@@ -86,9 +86,9 @@ public:
         case Severity::kERROR: std::cerr << "ERROR: "; break;
         case Severity::kWARNING: std::cerr << "WARNING: "; break;
         case Severity::kINFO: std::cerr << "INFO: "; break;
-        default: std::cerr << "UNKNOWN: "; break;
+       // default: std::cerr << "UNKNOWN: "; break;
         }
-        std::cerr << msg << std::endl;
+      //  std::cerr << msg << std::endl;
     }
 };
 

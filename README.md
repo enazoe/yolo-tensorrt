@@ -1,4 +1,6 @@
-# yolo-tensorrt
+__!!! news:__ _support yolov4 and Tensorrt7_
+
+
 
 ## INTRODUCTION
 

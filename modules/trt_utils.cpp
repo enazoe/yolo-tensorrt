@@ -24,7 +24,6 @@ SOFTWARE.
 */
 
 #include "trt_utils.h"
-#include "class_yolo_detector.hpp"
 #include <NvInferRuntimeCommon.h>
 #include <experimental/filesystem>
 #include <fstream>
@@ -178,10 +177,11 @@ std::vector<std::string> loadImageList(const std::string filename, const std::st
     return fileList;
 }
 
+
 std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
-									std::vector<BBoxInfo>& binfo,
-                                    const uint32_t numClasses,
-								 const ModelType model_type)
+	std::vector<BBoxInfo>& binfo,
+	const uint32_t numClasses,
+	const std::string &model_type)
 {
     std::vector<BBoxInfo> result;
     std::vector<std::vector<BBoxInfo>> splitBoxes(numClasses);
@@ -192,9 +192,9 @@ std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
 
     for (auto& boxes : splitBoxes)
     {
-		if ((YOLOV4 == model_type)||(YOLOV4_TINY == model_type))
+		if (("yolov4" == model_type)||("yolov4-tiny"== model_type))
 		{
-			boxes =	diou_nms(nmsThresh, binfo);
+			boxes =	diou_nms(nmsThresh, boxes);
 		}
 		else
 		{
@@ -206,14 +206,77 @@ std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
     return result;
 }
 
-std::vector<BBoxInfo> diou_nms(const float numThresh, std::vector<BBoxInfo> binfo)
-{
 
+std::vector<BBoxInfo> diou_nms(const float nmsThresh, std::vector<BBoxInfo> binfo)
+{
+	auto overlap1D = [](float x1min, float x1max, float x2min, float x2max) -> float
+	{
+		if (x1min > x2min)
+		{
+			std::swap(x1min, x2min);
+			std::swap(x1max, x2max);
+		}
+		return x1max < x2min ? 0 : std::min(x1max, x2max) - x2min;
+	};
+	auto computeIoU = [&overlap1D](BBox& bbox1, BBox& bbox2) -> float
+	{
+		float overlapX = overlap1D(bbox1.x1, bbox1.x2, bbox2.x1, bbox2.x2);
+		float overlapY = overlap1D(bbox1.y1, bbox1.y2, bbox2.y1, bbox2.y2);
+		float area1 = (bbox1.x2 - bbox1.x1) * (bbox1.y2 - bbox1.y1);
+		float area2 = (bbox2.x2 - bbox2.x1) * (bbox2.y2 - bbox2.y1);
+		float overlap2D = overlapX * overlapY;
+		float u = area1 + area2 - overlap2D;
+		return u == 0 ? 0 : overlap2D / u;
+	};
+
+	//https://arxiv.org/pdf/1911.08287.pdf
+	auto R = [](BBox &bbox1,BBox &bbox2) ->float
+	{
+		float center1_x = (bbox1.x1 + bbox1.x2) / 2.f;
+		float center1_y = (bbox1.y1 + bbox1.y2) / 2.f;
+		float center2_x = (bbox2.x1 + bbox2.x2) / 2.f;
+		float center2_y = (bbox2.y1 + bbox2.y2) / 2.f;
+
+		float d_center = (center1_x - center2_x)* (center1_x - center2_x) 
+						+ (center1_y - center2_y)*(center1_y - center2_y);
+		//smallest_enclosing box
+		float box_x1 = std::min({ bbox1.x1, bbox1.x2, bbox2.x1, bbox2.x2 });
+		float box_y1 = std::min({ bbox1.y1, bbox1.y2, bbox2.y1, bbox2.y2 });
+		float box_x2 = std::max({ bbox1.x1, bbox1.x2, bbox2.x1, bbox2.x2 });
+		float box_y2 = std::max({ bbox1.y1, bbox1.y2, bbox2.y1, bbox2.y2 });
+
+		float d_diagonal = (box_x1 - box_x2) * (box_x1 - box_x2) +
+						   (box_y1 - box_y2) * (box_y1 - box_y2);
+
+		return d_center / d_diagonal;
+	};
+	std::stable_sort(binfo.begin(), binfo.end(),
+		[](const BBoxInfo& b1, const BBoxInfo& b2) { return b1.prob > b2.prob; });
+	std::vector<BBoxInfo> out;
+	for (auto& i : binfo)
+	{
+		bool keep = true;
+		for (auto& j : out)
+		{
+			if (keep)
+			{
+				float overlap = computeIoU(i.box, j.box);
+				float r = R(i.box, j.box);
+				keep = (overlap-r) <= nmsThresh;
+			}
+			else
+				break;
+		}
+		if (keep) out.push_back(i);
+	}
+	return out;
 }
+
 
 std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<BBoxInfo> binfo)
 {
-    auto overlap1D = [](float x1min, float x1max, float x2min, float x2max) -> float {
+    auto overlap1D = [](float x1min, float x1max, float x2min, float x2max) -> float 
+	{
         if (x1min > x2min)
         {
             std::swap(x1min, x2min);
@@ -221,7 +284,8 @@ std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<B
         }
         return x1max < x2min ? 0 : std::min(x1max, x2max) - x2min;
     };
-    auto computeIoU = [&overlap1D](BBox& bbox1, BBox& bbox2) -> float {
+    auto computeIoU = [&overlap1D](BBox& bbox1, BBox& bbox2) -> float 
+	{
         float overlapX = overlap1D(bbox1.x1, bbox1.x2, bbox2.x1, bbox2.x2);
         float overlapY = overlap1D(bbox1.y1, bbox1.y2, bbox2.y1, bbox2.y2);
         float area1 = (bbox1.x2 - bbox1.x1) * (bbox1.y2 - bbox1.y1);
@@ -396,7 +460,6 @@ nvinfer1::ILayer* netAddMaxpool(int layerIdx, std::map<std::string, std::string>
     assert(pool);
     std::string maxpoolLayerName = "maxpool_" + std::to_string(layerIdx);
 	int pad = (size - 1) / 2;
-	std::cout << "pad:" << pad << std::endl;
 	pool->setPaddingNd(nvinfer1::DimsHW{pad,pad});
     pool->setStrideNd(nvinfer1::DimsHW{stride, stride});
     pool->setName(maxpoolLayerName.c_str());

@@ -38,7 +38,6 @@ SOFTWARE.
 #include <string>
 #include <vector>
 #include "class_timer.hpp"
-
 //#include "logging.h"
 
 /**
@@ -101,7 +100,8 @@ public:
     bool isPrintPredictions() const { return m_PrintPredictions; }
     bool isPrintPerfInfo() const { return m_PrintPerfInfo; }
     void doInference(const unsigned char* input, const uint32_t batchSize);
-    std::vector<BBoxInfo> decodeDetections(const int& imageIdx, const int& imageH,
+    std::vector<BBoxInfo> decodeDetections(const int& imageIdx,
+											const int& imageH,
                                            const int& imageW);
 
     virtual ~Yolo();

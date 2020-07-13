@@ -351,19 +351,6 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             size_t found = m_configBlocks.at(i).at("layers").find(",");
             if (found != std::string::npos)
             {
-				/*int idx1 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(0, found)));
-				int idx2 = std::stoi(trim(m_configBlocks.at(i).at("layers").substr(found + 1)));
-				if (idx1 < 0)
-				{
-					idx1 = tensorOutputs.size() + idx1;
-				}
-				if (idx2 < 0)
-				{
-					idx2 = tensorOutputs.size() + idx2;
-				}
-				assert(idx1 < static_cast<int>(tensorOutputs.size()) && idx1 >= 0);
-				assert(idx2 < static_cast<int>(tensorOutputs.size()) && idx2 >= 0);*/
-				///----------------
 				std::vector<int> vec_index = split_layer_index(m_configBlocks.at(i).at("layers"), ",");
 				for (auto &ind_layer:vec_index)
 				{
@@ -373,12 +360,8 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 					}
 					assert(ind_layer < static_cast<int>(tensorOutputs.size()) && ind_layer >= 0);
 				}
-
-
                 nvinfer1::ITensor** concatInputs
                     = reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * vec_index.size()));
-             //   concatInputs[0] = tensorOutputs[idx1];
-             //   concatInputs[1] = tensorOutputs[idx2];
 				for (int ind=0;ind<vec_index.size();++ind)
 				{
 					concatInputs[ind] = tensorOutputs[vec_index[ind]];
@@ -393,9 +376,6 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 previous = concat->getOutput(0);
                 assert(previous != nullptr);
                 std::string outputVol = dimsToString(previous->getDimensions());
-                // set the output volume depth
-                /*channels
-                    = getNumChannels(tensorOutputs[idx1]) + getNumChannels(tensorOutputs[idx2]);*/
 				int nums = 0;
 				for (auto &indx:vec_index)
 				{
@@ -413,13 +393,22 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                     idx = tensorOutputs.size() + idx;
                 }
                 assert(idx < static_cast<int>(tensorOutputs.size()) && idx >= 0);
-                previous = tensorOutputs[idx];
-                assert(previous != nullptr);
-                std::string outputVol = dimsToString(previous->getDimensions());
-                // set the output volume depth
-                channels = getNumChannels(tensorOutputs[idx]);
-                tensorOutputs.push_back(tensorOutputs[idx]);
-                printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
+
+				//TODO:yolov4-tiny route split layer
+				/*if (m_configBlocks.at(i).find("groups") != m_configBlocks.at(i).end())
+				{
+					
+				}
+				else
+				{*/
+					previous = tensorOutputs[idx];
+					assert(previous != nullptr);
+					std::string outputVol = dimsToString(previous->getDimensions());
+					// set the output volume depth
+					channels = getNumChannels(tensorOutputs[idx]);
+					tensorOutputs.push_back(tensorOutputs[idx]);
+					printLayerInfo(layerIndex, "route", "        -", outputVol, std::to_string(weightPtr));
+			//	}
             }
         }
         else if (m_configBlocks.at(i).at("type") == "upsample")
@@ -526,6 +515,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
+//	Timer timer;
     assert(batchSize <= m_BatchSize && "Image batch size exceeds TRT engines batch size");
     NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
                                   batchSize * m_InputSize * sizeof(float), cudaMemcpyHostToDevice,
@@ -539,10 +529,11 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
                                       cudaMemcpyDeviceToHost, m_CudaStream));
     }
     cudaStreamSynchronize(m_CudaStream);
-	
+//	timer.out("inference");
 }
 
-std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx, const int& imageH,
+std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
+										     const int& imageH,
                                              const int& imageW)
 {
     std::vector<BBoxInfo> binfo;

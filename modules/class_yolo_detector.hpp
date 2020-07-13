@@ -88,7 +88,10 @@ public:
 		{
 			auto curImage = vec_ds_images.at(i);
 			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
-			auto remaining = nmsAllClasses(_p_net->getNMSThresh(), binfo, _p_net->getNumClasses());
+			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
+				binfo,
+				_p_net->getNumClasses(),
+				_vec_net_type[_config.net_type]);
 			for (const auto &b : remaining)
 			{
 				Result res;
@@ -149,7 +152,7 @@ private:
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV3(1, _yolo_info, _infer_param) };
 		}
-		else if ((_config.net_type == YOLOV4) || (_config.net_type == YOLOV4_TINY))
+		else if (_config.net_type == YOLOV4) 
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV4(1,_yolo_info,_infer_param) };
 		}

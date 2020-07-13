@@ -42,7 +42,6 @@ SOFTWARE.
 
 #include "ds_image.h"
 #include "plugin_factory.h"
-
 //#include "logging.h"
 class DsImage;
 struct BBox
@@ -144,8 +143,9 @@ void convertBBoxImgRes(const float scalingFactor,
 void printPredictions(const BBoxInfo& info, const std::string& className);
 std::vector<std::string> loadListFromTextFile(const std::string filename);
 std::vector<std::string> loadImageList(const std::string filename, const std::string prefix);
+std::vector<BBoxInfo> diou_nms(const float numThresh, std::vector<BBoxInfo> binfo);
 std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh, std::vector<BBoxInfo>& binfo,
-                                    const uint32_t numClasses);
+                                    const uint32_t numClasses, const std::string &model_type);
 std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<BBoxInfo> binfo);
 nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFactory* pluginFactory,
                                      Logger& logger);

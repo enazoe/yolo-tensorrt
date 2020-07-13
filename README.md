@@ -8,24 +8,23 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 ## PLATFORM
 
-|  model   | gpu  |precision|memory used|detect time|
-|  :----:  | :----:  |:---:|:--:|:--:|
-| yolov3-416x416  | gtx1050 |INT8||25ms|
-| yolov3-416x416  | gtx1050 |FLOAT32||50ms|
-| yolov3-608x608  | gtx1050 |INT8|~450M|~50ms|
-| yolov3-608x608  | gtx1050 |FLOAT32|~1000M|~95ms|
-| yolov3-416x416  | jetson nano (15w) |HALF(FP16)||250ms|
+|     model      |        gpu        | precision  | memory used | detect time |
+| :------------: | :---------------: | :--------: | :---------: | :---------: |
+| yolov3-416x416 |      gtx1050      |    INT8    |             |    25ms     |
+| yolov3-416x416 |      gtx1050      |  FLOAT32   |             |    50ms     |
+| yolov3-608x608 |      gtx1050      |    INT8    |    ~450M    |    ~50ms    |
+| yolov3-608x608 |      gtx1050      |  FLOAT32   |   ~1000M    |    ~95ms    |
+| yolov3-416x416 | jetson nano (15w) | HALF(FP16) |             |    250ms    |
 
 ## WRAPPER
 
 Prepare the pretrained __.weights__ and __.cfg__ model. 
+
 ```c++
 Detector detector;
 Config config;
-config.inference_precison = INT8;
-detector.init(config);
-
 cv::Mat mat_image = cv::imread("dog.jpg");
+
 std::vector<Result> res;
 detector.detect(mat_image, res)
 ```
@@ -35,11 +34,11 @@ detector.detect(mat_image, res)
 
 ### windows10
 
-- dependency : cuda 10.0 , cudnn 7.5 , TensorRT 7.1.3.4 , opencv3.3 , gflags , vs2015
+- dependency : TensorRT 7.1.3.4  , cuda 11.0 , cudnn 8.0  , opencv3.3 , gflags , vs2015
 - build:
   
     open MSVC _sln/sln.sln_ file 
-    - dll project : the interface of the trt yolo dll
+    - dll project : the trt yolo detector dll
     - demo project : test of the dll
 
 ### ubuntu
@@ -108,5 +107,6 @@ private:
 
 ## REFERENCE
 
+- https://github.com/wang-xinyu/tensorrtx/tree/master/yolov4
 - https://github.com/mj8ac/trt-yolo-app_win64
 - https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps

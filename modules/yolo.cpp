@@ -662,11 +662,13 @@ void Yolo::parseConfigBlocks()
                 ? outputTensor.masks.size()
                 : std::stoul(trim(block.at("num")));
             outputTensor.numClasses = std::stoul(block.at("classes"));
-			
-			for (int i=0;i< outputTensor.numClasses;++i)
-			{
-				m_ClassNames.push_back(std::to_string(i));
-			}
+            if (m_ClassNames.empty())
+            {
+                for (int i=0;i< outputTensor.numClasses;++i)
+                {
+                    m_ClassNames.push_back(std::to_string(i));
+                }
+            }
 
             m_OutputTensors.push_back(outputTensor);
         }

@@ -20,3 +20,14 @@ api/
 .vs/
 .vscode/
 *.log
+.idea/
+
+build-ci/
+
+build-nx/
+
+cmake-build-debug/
+
+configs/calibration_images.txt.bak
+
+configs/yolov4-kFLOAT.engine.1060

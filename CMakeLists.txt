@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.1) 
-project(yolov3-trt)            
+project(yolo-trt)            
 
 file(GLOB_RECURSE sources     	modules/*.hpp modules/*.cpp modules/*.h modules/*.cu extra/*.h)
-add_executable(yolov3-trt samples/sample_detector.cpp)
+add_executable(yolo-trt samples/sample_detector.cpp)
 
 #find_Package(gflags REQUIRED)
 #if(gflags_FOUND)

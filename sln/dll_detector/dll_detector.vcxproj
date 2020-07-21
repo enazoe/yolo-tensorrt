@@ -123,6 +123,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\class_timer.hpp" />
+    <ClInclude Include="..\..\modules\chunk.h" />
     <ClInclude Include="..\..\modules\class_detector.h" />
     <ClInclude Include="..\..\modules\class_yolo_detector.hpp" />
   </ItemGroup>
@@ -140,6 +141,7 @@
     <ClCompile Include="..\..\modules\yolo_config_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="..\..\modules\chunk.cu" />
     <CudaCompile Include="..\..\modules\kernel.cu" />
     <CudaCompile Include="..\..\modules\mish.cu" />
   </ItemGroup>

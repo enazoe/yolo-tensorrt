@@ -1,4 +1,4 @@
-__!!! news:__ _support yolov4 and Tensorrt7_
+!!! news:support yolov4 ,yolov4-tiny and Tensorrt7_
 
 
 

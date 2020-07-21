@@ -1,5 +1,4 @@
 build/
-*.cfg
 *.weights
 *.engine
 *.pdb
@@ -9,7 +8,6 @@ data/
 *.sdf
 *.opensdf
 *.exp
-*.jpg
 *.db
 *.ipdb
 *.dll

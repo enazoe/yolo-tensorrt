@@ -20,9 +20,17 @@ int main()
 	config_v4.file_model_weights = "../configs/yolov4.weights";
 	config_v4.inference_precison = FP32;
 
+	Config config_v4_tiny;
+	config_v4_tiny.net_type = YOLOV4_TINY;
+	config_v4_tiny.detect_thresh = 0.5;
+	config_v4_tiny.file_model_cfg = "../configs/yolov4-tiny.cfg";
+	config_v4_tiny.file_model_weights = "../configs/yolov4-tiny.weights";
+	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
+	config_v4_tiny.inference_precison = INT8;
+
 	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector_ = std::make_unique<Detector>();
-	detector_->init(config_v3);
+	detector_->init(config_v4);
 	std::vector<Result> res;
 	Timer timer;
 	for (;;)

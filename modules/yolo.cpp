@@ -394,13 +394,8 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 }
                 assert(idx < static_cast<int>(tensorOutputs.size()) && idx >= 0);
 
-				//TODO:yolov4-tiny route split layer
-				/*if (m_configBlocks.at(i).find("groups") != m_configBlocks.at(i).end())
+				if (m_configBlocks.at(i).find("groups") == m_configBlocks.at(i).end())
 				{
-					
-				}
-				else
-				{*/
 					previous = tensorOutputs[idx];
 					assert(previous != nullptr);
 					std::string outputVol = dimsToString(previous->getDimensions());
@@ -408,7 +403,25 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 					channels = getNumChannels(tensorOutputs[idx]);
 					tensorOutputs.push_back(tensorOutputs[idx]);
 					printLayerInfo(layerIndex, "route", "        -", outputVol, std::to_string(weightPtr));
-			//	}
+
+				}
+				//yolov4-tiny route split layer
+				else
+				{
+					if (m_configBlocks.at(i).find("group_id") == m_configBlocks.at(i).end())
+					{
+						assert(0);
+					}
+					int chunk_idx = std::stoi(trim(m_configBlocks.at(i).at("group_id")));
+					nvinfer1::ILayer* out = layer_split(i, tensorOutputs[idx], m_Network);
+					std::string inputVol = dimsToString(previous->getDimensions());
+					previous = out->getOutput(chunk_idx);
+					assert(previous != nullptr);
+					channels = getNumChannels(previous);
+					std::string outputVol = dimsToString(previous->getDimensions());
+					tensorOutputs.push_back(out->getOutput(chunk_idx));
+					printLayerInfo(layerIndex,"chunk", inputVol, outputVol, std::to_string(weightPtr));
+				}
             }
         }
         else if (m_configBlocks.at(i).at("type") == "upsample")

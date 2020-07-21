@@ -37,8 +37,8 @@ cuda_add_library(detector SHARED ${sources})
 target_include_directories(detector PRIVATE extra/ modules/ ${OpenCV_INCLUDE_DIRS} ${CUDA_TOOLKIT_ROOT_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(detector nvinfer nvinfer_plugin nvcaffe_parser gflags "stdc++fs")
 				  
-target_include_directories(yolov3-trt PRIVATE modules/ extra/)
-target_link_libraries(yolov3-trt detector opencv_highgui opencv_imgproc opencv_core opencv_calib3d opencv_dnn)
+target_include_directories(yolo-trt PRIVATE modules/ extra/)
+target_link_libraries(yolo-trt detector opencv_highgui opencv_imgproc opencv_core opencv_calib3d opencv_dnn)
 
 
 

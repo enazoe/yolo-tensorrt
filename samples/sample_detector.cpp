@@ -30,7 +30,7 @@ int main()
 
 	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector_ = std::make_unique<Detector>();
-	detector_->init(config_v4_tiny);
+	detector_->init(config_v4);
 	std::vector<Result> res;
 	Timer timer;
 	for (;;)

@@ -1,19 +1,18 @@
-!!! news:support yolov4 ,yolov4-tiny and Tensorrt7_
-
+[![HitCount](http://hits.dwyl.com/enazoe/enazoe/yolo-tensorrt.svg)](http://hits.dwyl.com/enazoe/enazoe/yolo-tensorrt)
 
 
 ## INTRODUCTION
 
 The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
+- [x] yolov3 , yolov3-tiny
+- [x] yolov4 , yolov4-tiny
+- [ ] yolov5
+
 ## PLATFORM
 
 |     model      |        gpu        | precision  | memory used | detect time |
 | :------------: | :---------------: | :--------: | :---------: | :---------: |
-| yolov3-416x416 |      gtx1050      |    INT8    |             |    25ms     |
-| yolov3-416x416 |      gtx1050      |  FLOAT32   |             |    50ms     |
-| yolov3-608x608 |      gtx1050      |    INT8    |    ~450M    |    ~50ms    |
-| yolov3-608x608 |      gtx1050      |  FLOAT32   |   ~1000M    |    ~95ms    |
 | yolov3-416x416 | jetson nano (15w) | HALF(FP16) |             |    250ms    |
 
 ## WRAPPER

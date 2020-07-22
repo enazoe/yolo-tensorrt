@@ -31,3 +31,4 @@ cmake-build-debug/
 configs/calibration_images.txt.bak
 
 configs/yolov4-kFLOAT.engine.1060
+jpg/

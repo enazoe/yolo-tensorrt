@@ -22,7 +22,8 @@ public:
 	void out(std::string message = "")
 	{
 		double t = elapsed();
-		std::cout << message << " elasped time:" << t << "ms" << std::endl;
+		//std::cout << message << " elasped time:" << t << "ms" << std::endl;
+		std::cout << message << " fps: " << 1000/ static_cast<double >(t) << std::endl;
 		reset();
 	}
 

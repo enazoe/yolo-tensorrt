@@ -26,19 +26,19 @@ int main()
 	config_v4_tiny.file_model_cfg = "../configs/yolov4-tiny.cfg";
 	config_v4_tiny.file_model_weights = "../configs/yolov4-tiny.weights";
 	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v4_tiny.inference_precison = INT8;
+	config_v4_tiny.inference_precison = FP16;
 
 	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector_ = std::make_unique<Detector>();
 	detector_->init(config_v4_tiny);
 	std::vector<Result> res;
-	Timer timer;
+	//Timer timer;
 	for (;;)
 	{
 		cv::Mat mat_temp = mat_image.clone();
-		timer.reset();
+		// timer.reset();
 		detector_->detect(mat_temp, res);
-		timer.out("detect");
+		// timer.out("detect");
 		for (const auto &r : res)
 		{
 			std::cout << "id:" << r.id << " prob:" << r.prob << " rect:" << r.rect << std::endl;

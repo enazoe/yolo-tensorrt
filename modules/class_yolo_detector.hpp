@@ -16,6 +16,8 @@
 #include <stdio.h>  /* defines FILENAME_MAX */
 
 #include "class_detector.h"
+#include "class_timer.hpp"
+
 //struct Result
 //{
 //	int		 id = -1;
@@ -83,7 +85,9 @@ public:
 		vec_result.clear();
 		vec_ds_images.emplace_back(mat_image, _p_net->getInputH(), _p_net->getInputW());
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
+        timer.reset();
 		_p_net->doInference(trtInput.data, vec_ds_images.size());
+        timer.out("inference");
 		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
@@ -169,6 +173,7 @@ private:
 	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny","yolov4","yolov4-tiny" };
 	std::vector<std::string> _vec_precision{ "kINT8","kHALF","kFLOAT" };
 	std::unique_ptr<Yolo> _p_net = nullptr;
+    Timer timer;
 };
 
 

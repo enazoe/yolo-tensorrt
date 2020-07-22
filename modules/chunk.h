@@ -32,7 +32,7 @@ namespace nvinfer1
 		int enqueue(int batchSize, const void* const* inputs, void** outputs, void* workspace, cudaStream_t stream)override;
 		size_t getSerializationSize() const override;
 		void serialize(void* buffer) const override;
-		bool supportsFormat(DataType type, PluginFormat format) const override;
+		//bool supportsFormat(DataType type, PluginFormat format) const;
 		const char* getPluginType() const override;
 		const char* getPluginVersion() const override;
 		void destroy() override;

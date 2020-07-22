@@ -67,7 +67,7 @@ namespace nvinfer1
 		return 0;
 	}
 
-	rsize_t Chunk::getSerializationSize() const
+	size_t Chunk::getSerializationSize() const
 	{
 		return sizeof(_n_size_split);
 	}
@@ -77,10 +77,10 @@ namespace nvinfer1
 		*reinterpret_cast<int*>(buffer) = _n_size_split;
 	}
 	
-	bool Chunk::supportsFormat(DataType type, PluginFormat format) const
+/*	bool Chunk::supportsFormat(DataType type, PluginFormat format) const
 	{
 		return (type == DataType::kFLOAT && format == PluginFormat::kNCHW);
-	}
+	}*/
 	const char* Chunk::getPluginType()const
 	{
 		return "CHUNK_TRT";

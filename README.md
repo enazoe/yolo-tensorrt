@@ -1,5 +1,5 @@
-[![HitCount](http://hits.dwyl.com/enazoe/enazoe/yolo-tensorrt.svg)](http://hits.dwyl.com/enazoe/enazoe/yolo-tensorrt)
 
+![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt) 
 
 ## INTRODUCTION
 

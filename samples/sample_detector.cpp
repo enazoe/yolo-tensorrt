@@ -14,6 +14,14 @@ int main()
 	config_v3.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v3.inference_precison = FP32;
 
+	Config config_v3_tiny;
+	config_v3_tiny.net_type = YOLOV3_TINY;
+	config_v3_tiny.detect_thresh = 0.5;
+	config_v3_tiny.file_model_cfg = "../configs/yolov3-tiny.cfg";
+	config_v3_tiny.file_model_weights = "../configs/yolov3-tiny.weights";
+	config_v3_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
+	config_v3_tiny.inference_precison = INT8;
+
 	Config config_v4;
 	config_v4.net_type = YOLOV4;
 	config_v4.file_model_cfg = "../configs/yolov4.cfg";
@@ -26,11 +34,11 @@ int main()
 	config_v4_tiny.file_model_cfg = "../configs/yolov4-tiny.cfg";
 	config_v4_tiny.file_model_weights = "../configs/yolov4-tiny.weights";
 	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v4_tiny.inference_precison = INT8;
+	config_v4_tiny.inference_precison = FP32;
 
 	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector_ = std::make_unique<Detector>();
-	detector_->init(config_v4);
+	detector_->init(config_v3_tiny);
 	std::vector<Result> res;
 	Timer timer;
 	for (;;)

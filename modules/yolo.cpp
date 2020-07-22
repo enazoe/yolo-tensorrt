@@ -185,9 +185,12 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     std::vector<nvinfer1::ITensor*> tensorOutputs;
     uint32_t outputTensorCount = 0;
 
-    // Set the output dimensions formula for pooling layers
-   /* assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
-	m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());*/
+	if ("yolov3" == m_NetworkType || "yolov3-tiny" == m_NetworkType)
+	{
+		// Set the output dimensions formula for pooling layers
+		assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
+		m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());
+	}
 
     // build the network using the network API
     for (uint32_t i = 0; i < m_configBlocks.size(); ++i)
@@ -349,7 +352,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
         else if (m_configBlocks.at(i).at("type") == "route")
         {
             size_t found = m_configBlocks.at(i).at("layers").find(",");
-            if (found != std::string::npos)
+            if (found != std::string::npos)//concate multi layers 
             {
 				std::vector<int> vec_index = split_layer_index(m_configBlocks.at(i).at("layers"), ",");
 				for (auto &ind_layer:vec_index)
@@ -375,6 +378,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 concat->setAxis(0);
                 previous = concat->getOutput(0);
                 assert(previous != nullptr);
+				nvinfer1::Dims debug = previous->getDimensions();
                 std::string outputVol = dimsToString(previous->getDimensions());
 				int nums = 0;
 				for (auto &indx:vec_index)
@@ -385,7 +389,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 tensorOutputs.push_back(concat->getOutput(0));
                 printLayerInfo(layerIndex, "route", "        -", outputVol,std::to_string(weightPtr));
             }
-            else
+            else //single layer
             {
                 int idx = std::stoi(trim(m_configBlocks.at(i).at("layers")));
                 if (idx < 0)
@@ -394,6 +398,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 }
                 assert(idx < static_cast<int>(tensorOutputs.size()) && idx >= 0);
 
+				//route
 				if (m_configBlocks.at(i).find("groups") == m_configBlocks.at(i).end())
 				{
 					previous = tensorOutputs[idx];

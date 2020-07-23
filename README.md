@@ -12,6 +12,10 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 ## PLATFORM & PERFORMENCE
 
+- [x] windows 10
+- [x] ubuntu 18.04
+- [x] L4T (Jetson platform)
+
 |     model      |        gpu        | precision  | memory used | detect time |
 | :------------: | :---------------: | :--------: | :---------: | :---------: |
 | yolov3-416x416 | jetson nano (15w) | HALF(FP16) |             |    250ms    |
@@ -41,11 +45,11 @@ detector.detect(mat_image, res)
     - dll project : the trt yolo detector dll
     - demo project : test of the dll
 
-### ubuntu
+### ubuntu & L4T (jetson)
 
 
 ```
-sudo apt-get install libgflags-dev
+git clone https://github.com/enazoe/yolo-tensorrt.git
 cd yolo-tensorrt/
 mkdir build
 cd build/

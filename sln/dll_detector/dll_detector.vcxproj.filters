@@ -44,9 +44,6 @@
     <ClCompile Include="..\..\modules\yolo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\modules\yolo_config_parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\modules\yoloplugin_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

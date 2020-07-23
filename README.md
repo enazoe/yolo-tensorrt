@@ -38,7 +38,7 @@ detector.detect(mat_image, res)
 
 ### windows10
 
-- dependency : TensorRT 7.1.3.4  , cuda 11.0 , cudnn 8.0  , opencv3.3 , gflags , vs2015
+- dependency : TensorRT 7.1.3.4  , cuda 11.0 , cudnn 8.0  , opencv4 , vs2015
 - build:
   
     open MSVC _sln/sln.sln_ file 
@@ -47,8 +47,11 @@ detector.detect(mat_image, res)
 
 ### ubuntu & L4T (jetson)
 
+The project generate the __libdetector.so__ lib, and the sample code.
+_If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir._
 
-```
+
+```bash
 git clone https://github.com/enazoe/yolo-tensorrt.git
 cd yolo-tensorrt/
 mkdir build
@@ -56,24 +59,17 @@ cd build/
 cmake ..
 make
 ```
-The project generate the __libdetector.so__ lib, and the sample code.
-_If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir._
-
-- jetson nano 
+- **jetson nano**  JetPack 4.2.2
 	
-	dependency : gflags , JetPack 4.2.2
+	*note:*  set **_compute_53,code=sm_53_** at cmake file.
 
-	__note:__ when the platform is jetson nano the gencode arch must be set _compute_53,code=sm_53_ at cmake file.
-
-- jetson xavier nx
+- **jetson xavier nx**  JetPack 4.4
 	
-	dependency : gflags , JetPack 4.4
-
-	__note:__ when the platform is jetson-xavier-nx the gencode arch must be set _compute_72,code=sm_72_ at cmake file.
+	*note:*  set **_compute_72,code=sm_72_** at cmake file.
 
 ## API
 
-```
+```c++
 struct Config
 {
 	std::string file_model_cfg = "configs/yolov3.cfg";

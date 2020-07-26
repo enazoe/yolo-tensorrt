@@ -37,15 +37,15 @@ int main()
 	config_v4_tiny.inference_precison = FP32;
 
 	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
-	std::unique_ptr<Detector> detector_ = std::make_unique<Detector>();
-	detector_->init(config_v4);
+	std::unique_ptr<Detector> detector(new Detector());
+	detector->init(config_v4);
 	std::vector<Result> res;
 	Timer timer;
 	for (;;)
 	{
 		cv::Mat mat_temp = mat_image.clone();
 		timer.reset();
-		detector_->detect(mat_temp, res);
+		detector->detect(mat_temp, res);
 		timer.out("detect");
 		for (const auto &r : res)
 		{

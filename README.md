@@ -16,9 +16,12 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [x] ubuntu 18.04
 - [x] L4T (Jetson platform)
 
-|     model      |        gpu        | precision  | memory used | detect time |
-| :------------: | :---------------: | :--------: | :---------: | :---------: |
-| yolov3-416x416 | jetson nano (15w) | HALF(FP16) |             |    250ms    |
+|     model      |             gpu              | precision | memory used | detect time(with pre and post process) |
+| :------------: | :--------------------------: | :-------: | :---------: | :------------------------------------: |
+| yolov3-416x416 |      jetson nano (15w)       |   FP16    |             |                 250ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP32    |             |                 120ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP16    |             |                  45ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   INT8    |             |                  35ms                  |
 
 ## WRAPPER
 
@@ -33,7 +36,7 @@ std::vector<Result> res;
 detector.detect(mat_image, res)
 ```
 
-## How to use yolo-trt as DLL or SO libraries
+## Build and use yolo-trt as DLL or SO libraries
 
 
 ### windows10
@@ -72,13 +75,13 @@ make
 ```c++
 struct Config
 {
-	std::string file_model_cfg = "configs/yolov3.cfg";
+	std::string file_model_cfg = "configs/yolov4.cfg";
 
-	std::string file_model_weights = "configs/yolov3.weights";
+	std::string file_model_weights = "configs/yolov4.weights";
 
 	float detect_thresh = 0.9;
 
-	ModelType net_type = YOLOV3;
+	ModelType net_type = YOLOV4;
 
 	Precision inference_precison = INT8;
 	

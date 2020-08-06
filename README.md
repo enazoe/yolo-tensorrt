@@ -16,12 +16,12 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [x] ubuntu 18.04
 - [x] L4T (Jetson platform)
 
-|     model      |             gpu              | precision | memory used | detect time(with pre and post process) |
-| :------------: | :--------------------------: | :-------: | :---------: | :------------------------------------: |
-| yolov3-416x416 |      jetson nano (15w)       |   FP16    |             |                 250ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP32    |             |                 120ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP16    |             |                  45ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   INT8    |             |                  35ms                  |
+|     model      |             gpu              | precision | detect time(with pre and post process) |
+| :------------: | :--------------------------: | :-------: | :------------------------------------: |
+| yolov3-416x416 |      jetson nano (15w)       |   FP16    |                 250ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP32    |                 120ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP16    |                  45ms                  |
+| yolov3-416x416 | jetson xavier nx (15w 6core) |   INT8    |                  35ms                  |
 
 ## WRAPPER
 
@@ -51,7 +51,7 @@ detector.detect(mat_image, res)
 ### ubuntu & L4T (jetson)
 
 The project generate the __libdetector.so__ lib, and the sample code.
-_If you want to use the generated libdetector.so lib in your own project,the cmake file perhaps could help you in scripts dir._
+**_If you want to use the libdetector.so lib in your own project,this [cmake file](https://github.com/enazoe/yolo-tensorrt/blob/master/scripts/CMakeLists.txt) perhaps could help you ._**
 
 
 ```bash

@@ -51,6 +51,9 @@ int main()
 		{
 			std::cout << "id:" << r.id << " prob:" << r.prob << " rect:" << r.rect << std::endl;
 			cv::rectangle(mat_temp, r.rect, cv::Scalar(255, 0, 0), 2);
+			std::stringstream stream;
+			stream<< std::fixed << std::setprecision(2)<< "id:" << r.id << "  score:"<<r.prob;
+			cv::putText(mat_temp,stream.str() , cv::Point(r.rect.x, r.rect.y-5), 0, 0.5, cv::Scalar(0, 0, 255),2);
 		}
 		cv::imshow("image", mat_temp);
 		cv::waitKey(10);

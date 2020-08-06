@@ -2,6 +2,8 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt) 
 
+![](./configs/result.jpg)
+
 ## INTRODUCTION
 
 The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
@@ -12,9 +14,6 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 - [ ] yolov5
 
-<img align="left" src="./configs/result.jpg" style="zoom: 100%;" />
-
-------
 
 ## PLATFORM & PERFORMENCE
 

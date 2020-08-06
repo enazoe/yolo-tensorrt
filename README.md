@@ -12,7 +12,11 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 - [ ] yolov5
 
-  <img align="left" src="./configs/result.jpg" style="zoom: 67%;" />
+  
+  
+  <img align="left" src="./configs/result.jpg" style="zoom: 100%;" />
+
+
 
 ## PLATFORM & PERFORMENCE
 

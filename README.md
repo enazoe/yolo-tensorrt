@@ -7,8 +7,12 @@
 The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
 
 - [x] yolov3 , yolov3-tiny
+
 - [x] yolov4 , yolov4-tiny
+
 - [ ] yolov5
+
+  <img align="left" src="./configs/result.jpg" style="zoom: 67%;" />
 
 ## PLATFORM & PERFORMENCE
 

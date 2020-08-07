@@ -98,7 +98,7 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
     allocateBuffers();
     NV_CUDA_CHECK(cudaStreamCreate(&m_CudaStream));
     assert(verifyYoloEngine());
-};
+}
 
 Yolo::~Yolo()
 {
@@ -359,7 +359,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 				{
 					if (ind_layer < 0)
 					{
-						ind_layer = tensorOutputs.size() + ind_layer;
+						ind_layer = static_cast<int>(tensorOutputs.size()) + ind_layer;
 					}
 					assert(ind_layer < static_cast<int>(tensorOutputs.size()) && ind_layer >= 0);
 				}
@@ -370,7 +370,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 					concatInputs[ind] = tensorOutputs[vec_index[ind]];
 				}
                 nvinfer1::IConcatenationLayer* concat
-                    = m_Network->addConcatenation(concatInputs, vec_index.size());
+                    = m_Network->addConcatenation(concatInputs, static_cast<int>(vec_index.size()));
                 assert(concat != nullptr);
                 std::string concatLayerName = "route_" + std::to_string(i - 1);
                 concat->setName(concatLayerName.c_str());
@@ -394,7 +394,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 int idx = std::stoi(trim(m_configBlocks.at(i).at("layers")));
                 if (idx < 0)
                 {
-                    idx = tensorOutputs.size() + idx;
+                    idx = static_cast<int>(tensorOutputs.size()) + idx;
                 }
                 assert(idx < static_cast<int>(tensorOutputs.size()) && idx >= 0);
 
@@ -504,7 +504,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     int nbLayers = m_Network->getNbLayers();
     int layersOnDLA = 0;
  //   std::cout << "Total number of layers: " << nbLayers << std::endl;
-    for (uint32_t i = 0; i < nbLayers; i++)
+    for (int i = 0; i < nbLayers; i++)
     {
         nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
         if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
@@ -590,7 +590,7 @@ std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(const std:
         }
         else
         {
-            int cpos = line.find('=');
+            size_t cpos = line.find('=');
             std::string key = trim(line.substr(0, cpos));
             std::string value = trim(line.substr(cpos + 1));
             block.insert(std::pair<std::string, std::string>(key, value));
@@ -633,8 +633,8 @@ void Yolo::parseConfigBlocks()
             std::string anchorString = block.at("anchors");
             while (!anchorString.empty())
             {
-                int npos = anchorString.find_first_of(',');
-                if (npos != -1)
+                size_t npos = anchorString.find_first_of(',');
+                if (npos != std::string::npos)
                 {
                     float anchor = std::stof(trim(anchorString.substr(0, npos)));
                     outputTensor.anchors.push_back(anchor);
@@ -660,8 +660,8 @@ void Yolo::parseConfigBlocks()
                 std::string maskString = block.at("mask");
                 while (!maskString.empty())
                 {
-                    int npos = maskString.find_first_of(',');
-                    if (npos != -1)
+                    size_t npos = maskString.find_first_of(',');
+                    if (npos != std::string::npos)
                     {
                         uint32_t mask = std::stoul(trim(maskString.substr(0, npos)));
                         outputTensor.masks.push_back(mask);

@@ -72,7 +72,7 @@ namespace nvinfer1
 		static std::vector<PluginField> _vec_plugin_attributes;
 	};
 
-};//nampespace nvinfer1
+}//nampespace nvinfer1
 
 
 #endif

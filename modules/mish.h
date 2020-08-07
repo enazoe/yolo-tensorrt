@@ -26,7 +26,7 @@ namespace nvinfer1
 
             int initialize() override;
 
-            virtual void terminate() override {};
+            virtual void terminate() override {}
 
             virtual size_t getWorkspaceSize(int maxBatchSize) const override { return 0;}
 
@@ -104,5 +104,5 @@ namespace nvinfer1
             static PluginFieldCollection mFC;
             static std::vector<PluginField> mPluginAttributes;
     };
-};
+}
 #endif 

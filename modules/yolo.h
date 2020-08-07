@@ -96,7 +96,7 @@ public:
     int getClassId(const int& label) const { return m_ClassIds.at(label); }
     uint32_t getInputH() const { return m_InputH; }
     uint32_t getInputW() const { return m_InputW; }
-    uint32_t getNumClasses() const { return m_ClassNames.size(); }
+    uint32_t getNumClasses() const { return static_cast<uint32_t>(m_ClassNames.size()); }
     bool isPrintPredictions() const { return m_PrintPredictions; }
     bool isPrintPerfInfo() const { return m_PrintPerfInfo; }
     void doInference(const unsigned char* input, const uint32_t batchSize);
@@ -171,7 +171,7 @@ protected:
         bbi.prob = maxProb;
         bbi.classId = getClassId(maxIndex);
         binfo.push_back(bbi);
-    };
+    }
 
 private:
     Logger m_Logger;

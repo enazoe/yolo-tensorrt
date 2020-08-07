@@ -20,3 +20,5 @@ api/
 .vs/
 .vscode/
 *.log
+*.ipynb
+*.pt

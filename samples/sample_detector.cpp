@@ -36,27 +36,39 @@ int main()
 	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v4_tiny.inference_precison = FP32;
 
-	cv::Mat mat_image = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
+	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
+	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v4);
-	std::vector<Result> res;
+	detector->init(config_v4_tiny);
+	std::vector<BatchResult> batch_res;
 	Timer timer;
 	for (;;)
 	{
-		cv::Mat mat_temp = mat_image.clone();
+		//prepare batch data
+		std::vector<cv::Mat> batch_img;
+		cv::Mat temp0 = image0.clone();
+		cv::Mat temp1 = image1.clone();
+		batch_img.push_back(temp0);
+		batch_img.push_back(temp1);
+
+		//detect
 		timer.reset();
-		detector->detect(mat_temp, res);
+		detector->detect(batch_img, batch_res);
 		timer.out("detect");
-		for (const auto &r : res)
+
+		//disp
+		for (int i=0;i<batch_img.size();++i)
 		{
-			std::cout << "id:" << r.id << " prob:" << r.prob << " rect:" << r.rect << std::endl;
-			cv::rectangle(mat_temp, r.rect, cv::Scalar(255, 0, 0), 2);
-			std::stringstream stream;
-			stream<< std::fixed << std::setprecision(2)<< "id:" << r.id << "  score:"<<r.prob;
-			cv::putText(mat_temp,stream.str() , cv::Point(r.rect.x, r.rect.y-5), 0, 0.5, cv::Scalar(0, 0, 255),2);
+			for (const auto &r : batch_res[i])
+			{
+				std::cout <<"batch "<<i<< " id:" << r.id << " prob:" << r.prob << " rect:" << r.rect << std::endl;
+				cv::rectangle(batch_img[i], r.rect, cv::Scalar(255, 0, 0), 2);
+				std::stringstream stream;
+				stream << std::fixed << std::setprecision(2) << "id:" << r.id << "  score:" << r.prob;
+				cv::putText(batch_img[i], stream.str(), cv::Point(r.rect.x, r.rect.y - 5), 0, 0.5, cv::Scalar(0, 0, 255), 2);
+			}
+			cv::imshow("image"+std::to_string(i), batch_img[i]);
 		}
-		cv::imshow("image", mat_temp);
 		cv::waitKey(10);
 	}
-	cv::waitKey();
 }

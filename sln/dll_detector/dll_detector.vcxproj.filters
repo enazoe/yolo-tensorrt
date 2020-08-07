@@ -24,9 +24,6 @@
     <ClInclude Include="..\..\extra\class_timer.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\modules\chunk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\modules\calibrator.cpp">

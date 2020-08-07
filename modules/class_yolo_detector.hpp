@@ -76,12 +76,16 @@ public:
 		this->build_net();
 	}
 
-	void detect(const cv::Mat		&mat_image,
-				std::vector<Result> &vec_result)
+	void detect(const std::vector<cv::Mat>	&vec_image,
+				std::vector<BatchResult> &vec_batch_result)
 	{
 		std::vector<DsImage> vec_ds_images;
-		vec_result.clear();
-		vec_ds_images.emplace_back(mat_image, _p_net->getInputH(), _p_net->getInputW());
+		vec_batch_result.clear();
+		vec_batch_result.resize(vec_image.size());
+		for (const auto &img:vec_image)
+		{
+			vec_ds_images.emplace_back(img, _p_net->getInputH(), _p_net->getInputW());
+		}
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
 		_p_net->doInference(trtInput.data, vec_ds_images.size());
 		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
@@ -92,6 +96,11 @@ public:
 				binfo,
 				_p_net->getNumClasses(),
 				_vec_net_type[_config.net_type]);
+			if (0 == remaining.size())
+			{
+				continue;
+			}
+			std::vector<Result> vec_result(0);
 			for (const auto &b : remaining)
 			{
 				Result res;
@@ -104,6 +113,7 @@ public:
 				res.rect = cv::Rect(x, y, w, h);
 				vec_result.push_back(res);
 			}
+			vec_batch_result[i] = vec_result;
 		}
 	}
 
@@ -146,15 +156,15 @@ private:
 	{
 		if ((_config.net_type == YOLOV2) || (_config.net_type == YOLOV2_TINY))
 		{
-			_p_net = std::unique_ptr<Yolo>{ new YoloV2(1, _yolo_info, _infer_param) };
+			_p_net = std::unique_ptr<Yolo>{ new YoloV2(_config.n_max_batch, _yolo_info, _infer_param) };
 		}
 		else if ((_config.net_type == YOLOV3) || (_config.net_type == YOLOV3_TINY))
 		{
-			_p_net = std::unique_ptr<Yolo>{ new YoloV3(1, _yolo_info, _infer_param) };
+			_p_net = std::unique_ptr<Yolo>{ new YoloV3(_config.n_max_batch, _yolo_info, _infer_param) };
 		}
 		else if( (_config.net_type == YOLOV4) || (_config.net_type == YOLOV4_TINY))
 		{
-			_p_net = std::unique_ptr<Yolo>{ new YoloV4(1,_yolo_info,_infer_param) };
+			_p_net = std::unique_ptr<Yolo>{ new YoloV4(_config.n_max_batch,_yolo_info,_infer_param) };
 		}
 		else
 		{

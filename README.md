@@ -2,8 +2,9 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt) 
 
-![](./configs/result.jpg)
+__news:__ batch inference support
 
+![](./configs/result.jpg)
 ## INTRODUCTION
 
 The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
@@ -35,10 +36,9 @@ Prepare the pretrained __.weights__ and __.cfg__ model.
 ```c++
 Detector detector;
 Config config;
-cv::Mat mat_image = cv::imread("dog.jpg");
 
-std::vector<Result> res;
-detector.detect(mat_image, res)
+std::vector<BatchResult> res;
+detector.detect(vec_image, res)
 ```
 
 ## Build and use yolo-trt as DLL or SO libraries
@@ -66,6 +66,7 @@ mkdir build
 cd build/
 cmake ..
 make
+./yolo-trt
 ```
 - **jetson nano**  JetPack 4.2.2
 	
@@ -93,6 +94,8 @@ struct Config
 	int gpu_id = 0;
 
 	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
+
+	int n_max_batch = 4;	
 };
 
 class API Detector
@@ -103,7 +106,7 @@ public:
 
 	void init(const Config &config);
 
-	void detect(const cv::Mat &mat_image, std::vector<Result> &vec_result);
+	void detect(const std::vector<cv::Mat> &mat_image,std::vector<BatchResult> &vec_batch_result);
 
 private:
 	Detector(const Detector &);

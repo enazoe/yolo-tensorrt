@@ -12,6 +12,8 @@ struct Result
 	cv::Rect rect;
 };
 
+typedef std::vector<Result> BatchResult;
+
 enum ModelType
 {
 	YOLOV2 = 0,
@@ -44,6 +46,8 @@ struct Config
 	int	gpu_id									= 0;
 
 	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
+
+	int n_max_batch = 4;
 };
 
 class API Detector
@@ -55,7 +59,7 @@ public:
 
 	void init(const Config &config);
 
-	void detect(const cv::Mat &mat_image, std::vector<Result> &vec_result);
+	void detect(const std::vector<cv::Mat> &mat_image, std::vector<BatchResult> &vec_batch_result);
 
 private:
 	

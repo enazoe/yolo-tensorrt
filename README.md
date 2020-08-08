@@ -1,6 +1,6 @@
 # Yolov3 Yolov4 TensorRT Implementation
 
-![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt) 
+![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 __news:__ batch inference support
 
@@ -13,7 +13,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 - [x] yolov4 , yolov4-tiny
 
-- [ ] yolov5
+- [ ] yolov5S
 
 
 ## PLATFORM & PERFORMENCE

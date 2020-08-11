@@ -67,10 +67,10 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\props\opencv330_release_x64.props" />
     <Import Project="..\props\dll_debug_release_x64.props" />
     <Import Project="..\props\TensorRT-7.1.3.4_cuda-11.0_cudnn8.0.props" />
     <Import Project="..\props\cuda11_x64_release.props" />
+    <Import Project="..\props\opencv330_release_x64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\modules\yolov2.cpp" />
     <ClCompile Include="..\..\modules\yolov3.cpp" />
     <ClCompile Include="..\..\modules\yolov4.cpp" />
+    <ClCompile Include="..\..\modules\yolov5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\modules\chunk.cu" />

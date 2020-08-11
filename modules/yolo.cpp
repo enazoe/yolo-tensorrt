@@ -61,8 +61,15 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
     m_TinyMaxpoolPaddingFormula(new YoloTinyMaxpoolPaddingFormula)
 {
    // m_ClassNames = loadListFromTextFile(m_LabelsFilePath);
-    m_configBlocks = parseConfigFile(m_ConfigFilePath);
-    parseConfigBlocks();
+	if (m_NetworkType == "yolov5")
+	{
+		parse_yaml_file(m_ConfigFilePath);
+	}
+	else
+	{
+		m_configBlocks = parseConfigFile(m_ConfigFilePath);
+		parseConfigBlocks();
+	}
 
     if (m_Precision == "kFLOAT")
     {
@@ -561,6 +568,17 @@ std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
         binfo.insert(binfo.end(), curBInfo.begin(), curBInfo.end());
     }
     return binfo;
+}
+
+void Yolo::parse_yaml_file(const std::string s_yaml_file_)
+{
+	cv::FileStorage fs(s_yaml_file_, cv::FileStorage::WRITE);
+	fs << "asdf";
+	fs.release();
+	assert(fileExists(s_yaml_file_));
+	assert(fs.open(s_yaml_file_, cv::FileStorage::READ));
+	auto anchors = fs["anchors"];
+	auto backbone = fs["backbone"];
 }
 
 std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(const std::string cfgFilePath)

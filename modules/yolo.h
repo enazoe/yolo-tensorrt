@@ -38,6 +38,7 @@ SOFTWARE.
 #include <string>
 #include <vector>
 #include "class_timer.hpp"
+#include "opencv2/opencv.hpp"
 //#include "logging.h"
 
 /**
@@ -179,6 +180,7 @@ private:
                           Int8EntropyCalibrator* calibrator = nullptr);
     std::vector<std::map<std::string, std::string>> parseConfigFile(const std::string cfgFilePath);
     void parseConfigBlocks();
+	void parse_yaml_file(const std::string s_yaml_file_);
     void allocateBuffers();
     bool verifyYoloEngine();
     void destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights);

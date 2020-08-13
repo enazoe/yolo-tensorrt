@@ -38,7 +38,7 @@ SOFTWARE.
 #include "mish.h"
 #include "chunk.h"
 #include <set>
-
+#include <math.h>
 #include "NvInfer.h"
 
 #include "ds_image.h"
@@ -188,5 +188,16 @@ void printLayerInfo(std::string layerIndex, std::string layerName, std::string l
 
 nvinfer1::ILayer * layer_split(const int n_layer_index_,
 	nvinfer1::ITensor *input_,
+	nvinfer1::INetworkDefinition* network);
+
+std::vector<int> parse_int_list(const std::string s_args_);
+
+nvinfer1::ILayer* net_focus(const int layer_index,
+	std::map<std::string, std::string>& block,
+	std::vector<float>& weights,
+	nvinfer1::ITensor* input,
+	const int& inputChannels,
+	std::vector<nvinfer1::Weights>& trtWeights,
+	int &ptr,
 	nvinfer1::INetworkDefinition* network);
 #endif

@@ -126,6 +126,9 @@ protected:
     uint32_t m_InputW;
     uint32_t m_InputC;
     uint64_t m_InputSize;
+	uint32_t _n_classes = 0;
+	float _f_depth_multiple = 0;
+	float _f_width_multiple = 0;
     const float m_ProbThresh;
     const float m_NMSThresh;
     std::vector<std::string> m_ClassNames;
@@ -178,9 +181,11 @@ private:
     Logger m_Logger;
     void createYOLOEngine(const nvinfer1::DataType dataType = nvinfer1::DataType::kFLOAT,
                           Int8EntropyCalibrator* calibrator = nullptr);
+	void create_engine_yolov5(const nvinfer1::DataType dataType = nvinfer1::DataType::kFLOAT,
+		Int8EntropyCalibrator* calibrator = nullptr);
     std::vector<std::map<std::string, std::string>> parseConfigFile(const std::string cfgFilePath);
     void parseConfigBlocks();
-	void parse_yaml_file(const std::string s_yaml_file_);
+	void parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::string>> &vec_block_);
     void allocateBuffers();
     bool verifyYoloEngine();
     void destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights);
@@ -188,7 +193,7 @@ private:
 
 private:
 	Timer _timer;
-
+	void Yolo::load_weights_v5(const std::string s_weights_path_, std::map<int, std::vector<float>> &vec_wts_);
 };
 
 #endif // _YOLO_H_

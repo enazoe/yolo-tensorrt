@@ -27,7 +27,9 @@ SOFTWARE.
 #include <memory>
 #include <vector>
 #include <fstream>
-
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const InferParams& inferParams) :
     m_EnginePath(networkInfo.enginePath),
     m_NetworkType(networkInfo.networkType),
@@ -61,30 +63,52 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
     m_TinyMaxpoolPaddingFormula(new YoloTinyMaxpoolPaddingFormula)
 {
    // m_ClassNames = loadListFromTextFile(m_LabelsFilePath);
+	m_configBlocks = parseConfigFile(m_ConfigFilePath);
 	if (m_NetworkType == "yolov5")
 	{
-		parse_yaml_file(m_ConfigFilePath);
+		parse_cfg_blocks_v5(m_configBlocks);
 	}
 	else
 	{
-		m_configBlocks = parseConfigFile(m_ConfigFilePath);
 		parseConfigBlocks();
 	}
-
+	
     if (m_Precision == "kFLOAT")
     {
-        createYOLOEngine();
+		if ("yolov5" == m_NetworkType)
+		{
+
+			create_engine_yolov5();
+		}
+		else
+		{
+			createYOLOEngine();
+		}
     }
     else if (m_Precision == "kINT8")
     {
         Int8EntropyCalibrator calibrator(m_BatchSize, m_CalibImages, m_CalibImagesFilePath,
                                          m_CalibTableFilePath, m_InputSize, m_InputH, m_InputW,
                                          m_InputBlobName);
-        createYOLOEngine(nvinfer1::DataType::kINT8, &calibrator);
+		if ("yolov5" == m_NetworkType)
+		{
+			create_engine_yolov5(nvinfer1::DataType::kINT8, &calibrator);
+		}
+		else
+		{
+			createYOLOEngine(nvinfer1::DataType::kINT8, &calibrator);
+		}
     }
     else if (m_Precision == "kHALF")
     {
-        createYOLOEngine(nvinfer1::DataType::kHALF, nullptr);
+		if ("yolov5" == m_NetworkType)
+		{
+			create_engine_yolov5(nvinfer1::DataType::kHALF, nullptr);
+		}
+		else
+		{
+			createYOLOEngine(nvinfer1::DataType::kHALF, nullptr);
+		}
     }
     else
     {
@@ -151,7 +175,7 @@ std::vector<int> split_layer_index(const std::string &s_,const std::string &deli
 
 void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibrator* calibrator)
 {
-    std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
+	std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
     std::vector<nvinfer1::Weights> trtWeights;
     int weightPtr = 0;
     int channels = m_InputC;
@@ -303,59 +327,6 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             printLayerInfo(layerIndex, "yolo", inputVol, outputVol, std::to_string(weightPtr));
             ++outputTensorCount;
         }
-        //else if (m_configBlocks.at(i).at("type") == "region")
-        //{
-        //    nvinfer1::Dims prevTensorDims = previous->getDimensions();
-        //    assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
-        //    TensorInfo& curRegionTensor = m_OutputTensors.at(outputTensorCount);
-        //    curRegionTensor.gridSize = prevTensorDims.d[1];
-        //    curRegionTensor.stride = m_InputW / curRegionTensor.gridSize;
-        //    m_OutputTensors.at(outputTensorCount).volume = curRegionTensor.gridSize
-        //        * curRegionTensor.gridSize
-        //        * (curRegionTensor.numBBoxes * (5 + curRegionTensor.numClasses));
-        //    std::string layerName = "region_" + std::to_string(i);
-        //    curRegionTensor.blobName = layerName;
-        //    nvinfer1::plugin::RegionParameters RegionParameters{
-        //        static_cast<int>(curRegionTensor.numBBoxes), 4,
-        //        static_cast<int>(curRegionTensor.numClasses), nullptr};
-        //    std::string inputVol = dimsToString(previous->getDimensions());
-        //    nvinfer1::IPlugin* regionPlugin
-        //        = nvinfer1::plugin::createYOLORegionPlugin(RegionParameters);
-        //    assert(regionPlugin != nullptr);
-        //    nvinfer1::IPluginLayer* region = m_Network->addPlugin(&previous, 1, *regionPlugin);
-        //    assert(region != nullptr);
-        //    region->setName(layerName.c_str());
-        //    previous = region->getOutput(0);
-        //    assert(previous != nullptr);
-        //    previous->setName(layerName.c_str());
-        //    std::string outputVol = dimsToString(previous->getDimensions());
-        //    m_Network->markOutput(*previous);
-        //    channels = getNumChannels(previous);
-        //    tensorOutputs.push_back(region->getOutput(0));
-        ////    printLayerInfo(layerIndex, "region", inputVol, outputVol, std::to_string(weightPtr));
-        //    std::cout << "Anchors are being converted to network input resolution i.e. Anchors x "
-        //              << curRegionTensor.stride << " (stride)" << std::endl;
-        //    for (auto& anchor : curRegionTensor.anchors) anchor *= curRegionTensor.stride;
-        //    ++outputTensorCount;
-        //}
-        //else if (m_configBlocks.at(i).at("type") == "reorg")
-        //{
-        //    std::string inputVol = dimsToString(previous->getDimensions());
-        //    nvinfer1::IPlugin* reorgPlugin = nvinfer1::plugin::createYOLOReorgPlugin(2);
-        //    assert(reorgPlugin != nullptr);
-        //    nvinfer1::IPluginLayer* reorg = m_Network->addPlugin(&previous, 1, *reorgPlugin);
-        //    assert(reorg != nullptr);
-
-        //    std::string layerName = "reorg_" + std::to_string(i);
-        //    reorg->setName(layerName.c_str());
-        //    previous = reorg->getOutput(0);
-        //    assert(previous != nullptr);
-        //    std::string outputVol = dimsToString(previous->getDimensions());
-        //    channels = getNumChannels(previous);
-        //    tensorOutputs.push_back(reorg->getOutput(0));
-        ////    printLayerInfo(layerIndex, "reorg", inputVol, outputVol, std::to_string(weightPtr));
-        //}
-        // route layers (single or concat)
         else if (m_configBlocks.at(i).at("type") == "route")
         {
             size_t found = m_configBlocks.at(i).at("layers").find(",");
@@ -536,8 +507,114 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     destroyNetworkUtils(trtWeights);
 }
 
+void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
+	Int8EntropyCalibrator* calibrator )
+{
+	std::map<int, std::vector<float>> ind_wts;
+	load_weights_v5(m_WtsFilePath, ind_wts);
+	std::vector<nvinfer1::Weights> trtWeights;
+	int channels = m_InputC;
+	m_Builder = nvinfer1::createInferBuilder(m_Logger);
+	nvinfer1::IBuilderConfig* config = m_Builder->createBuilderConfig();
+	m_Network = m_Builder->createNetworkV2(0U);
+	if ((dataType == nvinfer1::DataType::kINT8 && !m_Builder->platformHasFastInt8())
+		|| (dataType == nvinfer1::DataType::kHALF && !m_Builder->platformHasFastFp16()))
+	{
+		std::cout << "Platform doesn't support this precision." << std::endl;
+		assert(0);
+	}
 
+	nvinfer1::ITensor* data = m_Network->addInput(
+		m_InputBlobName.c_str(),
+		nvinfer1::DataType::kFLOAT,
+		nvinfer1::DimsCHW{ static_cast<int>(m_InputC), static_cast<int>(m_InputH),
+		static_cast<int>(m_InputW) });
+	assert(data != nullptr);
+	// Add elementwise layer to normalize pixel values 0-1
+	nvinfer1::Dims divDims{
+		3,
+		{ static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW) },
+		{ nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
+		nvinfer1::DimensionType::kSPATIAL } };
 
+	nvinfer1::Weights divWeights{ nvinfer1::DataType::kFLOAT,
+		nullptr,
+		static_cast<int64_t>(m_InputSize) };
+	float* divWt = new float[m_InputSize];
+	for (uint32_t w = 0; w < m_InputSize; ++w) divWt[w] = 255.0;
+	divWeights.values = divWt;
+	trtWeights.push_back(divWeights);
+	nvinfer1::IConstantLayer* constDivide = m_Network->addConstant(divDims, divWeights);
+	assert(constDivide != nullptr);
+	nvinfer1::IElementWiseLayer* elementDivide = m_Network->addElementWise(
+		*data, *constDivide->getOutput(0), nvinfer1::ElementWiseOperation::kDIV);
+	assert(elementDivide != nullptr);
+
+	nvinfer1::ITensor* previous = elementDivide->getOutput(0);
+	std::vector<nvinfer1::ITensor*> tensorOutputs;
+	int n_layer_wts_index = 0;
+	for (uint32_t i = 0; i < m_configBlocks.size(); ++i)
+	{
+		assert(getNumChannels(previous) == channels);
+		std::string layerIndex = "(" + std::to_string(i) + ")";
+
+		if ("net" == m_configBlocks.at(i).at("type") )
+		{
+			printLayerInfo("", "layer", "     inp_size", "     out_size", "weightPtr");
+		}
+		else if ("Focus" == m_configBlocks.at(i).at("type"))
+		{
+			int ptr = 0;
+			std::string inputVol = dimsToString(previous->getDimensions());
+			nvinfer1::ILayer* out = net_focus(i,
+				m_configBlocks.at(i),
+				ind_wts[i],
+				previous,
+				channels,
+				trtWeights,
+				ptr,
+				m_Network);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex,"Focus", inputVol, outputVol, std::to_string(ptr));
+			if (ind_wts[i].size() != ptr)
+			{
+				std::cout << "layer:" << i << "Number of unused weights left : " << ind_wts[i].size() - ptr << std::endl;
+				assert(0);
+			}
+		}
+	}
+
+}
+
+void Yolo::load_weights_v5(const std::string s_weights_path_,std::map<int,std::vector<float>> &vec_wts_)
+{
+	vec_wts_.clear();
+	assert(fileExists(s_weights_path_));
+	std::cout << "Loading pre-trained weights..." << std::endl;
+	std::ifstream file(s_weights_path_, std::ios_base::binary);
+	assert(file.good());
+	std::string line;
+	while (std::getline(file,line))
+	{
+		if(line.size()==0)continue;
+		std::stringstream iss(line);
+		int index, size;
+		iss >> index >> size;
+		std::vector<float> weights;
+		for (int i=0;i<size;++i)
+		{
+			uint32_t n_str;
+			iss >>std::hex>> n_str;
+			weights.push_back(reinterpret_cast<float&>(n_str));
+		}
+		vec_wts_[index] = weights;
+	}
+	std::cout << "Loading complete!" << std::endl;
+}
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
 //	Timer timer;
@@ -568,17 +645,6 @@ std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
         binfo.insert(binfo.end(), curBInfo.begin(), curBInfo.end());
     }
     return binfo;
-}
-
-void Yolo::parse_yaml_file(const std::string s_yaml_file_)
-{
-	cv::FileStorage fs(s_yaml_file_, cv::FileStorage::WRITE);
-	fs << "asdf";
-	fs.release();
-	assert(fileExists(s_yaml_file_));
-	assert(fs.open(s_yaml_file_, cv::FileStorage::READ));
-	auto anchors = fs["anchors"];
-	auto backbone = fs["backbone"];
 }
 
 std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(const std::string cfgFilePath)
@@ -711,6 +777,95 @@ void Yolo::parseConfigBlocks()
     }
 }
 
+void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::string>> &vec_block_)
+{
+	std::vector<float> vec_anchors;
+	for (const auto &block : vec_block_)
+	{
+		if ("net" == block.at("type"))
+		{
+			assert((block.find("height") != block.end())
+				&& "Missing 'height' param in network cfg");
+			assert((block.find("width") != block.end()) && "Missing 'width' param in network cfg");
+			assert((block.find("nc") != block.end())
+				&& "Missing 'nc' param in network cfg");
+			assert((block.find("depth_multiple") != block.end())
+				&& "Missing 'depth_multiple' param in network cfg");
+			assert((block.find("width_multiple") != block.end())
+				&& "Missing 'width_multiple' param in network cfg");
+			assert((block.find("anchors") != block.end())
+				&& "Missing 'anchors' param in network cfg");
+			assert((block.find("channels") != block.end())
+				&& "Missing 'channels' param in network cfg");
+
+			m_InputH = std::stoul(trim(block.at("height")));
+			m_InputW = std::stoul(trim(block.at("width")));
+			m_InputC = std::stoul(trim(block.at("channels")));
+			_f_depth_multiple = std::stof(trim(block.at("depth_multiple")));
+			_f_width_multiple = std::stof(trim(block.at("width_multiple")));
+			_n_classes = std::stoi(trim(block.at("nc")));
+			m_InputSize = m_InputC * m_InputH * m_InputW;
+			std::string anchorString = block.at("anchors");
+			while (!anchorString.empty())
+			{
+				int npos = anchorString.find_first_of(',');
+				if (npos != -1)
+				{
+					float anchor = std::stof(trim(anchorString.substr(0, npos)));
+					vec_anchors.push_back(anchor);
+					anchorString.erase(0, npos + 1);
+				}
+				else
+				{
+					float anchor = std::stof(trim(anchorString));
+					vec_anchors.push_back(anchor);
+					break;
+				}
+			}
+		}
+		else if ("Detect" == block.at("type"))
+		{
+			assert((block.find("from") != block.end())
+				&& "Missing 'from' param in network cfg");
+			std::string from = block.at("from");
+			std::vector<int> vec_from{};
+			while (!from.empty())
+			{
+				int npos = from.find_first_of(",");
+				if (-1 != npos)
+				{
+					vec_from.push_back(std::stoi(trim(from.substr(0, npos))));
+					from.erase(0, npos + 1);
+				}
+				else
+				{
+					vec_from.push_back(std::stoi(trim(from)));
+					break;
+				}
+			}
+
+			for (uint32_t i = 0; i < vec_from.size(); ++i)
+			{
+				TensorInfo outputTensor;
+				outputTensor.anchors = vec_anchors;
+				outputTensor.masks = std::vector<uint32_t>{3*i,3*i+1,3*i+2};
+				outputTensor.numBBoxes = outputTensor.masks.size();
+				outputTensor.numClasses = _n_classes;
+
+				m_OutputTensors.push_back(outputTensor);
+
+				if (m_ClassNames.empty())
+				{
+					for (int i = 0; i < outputTensor.numClasses; ++i)
+					{
+						m_ClassNames.push_back(std::to_string(i));
+					}
+				}
+			}
+			
+		}
+	}
+}
 void Yolo::allocateBuffers()
 {
     m_DeviceBuffers.resize(m_Engine->getNbBindings(), nullptr);

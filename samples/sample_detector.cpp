@@ -39,7 +39,7 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/barcode_template.yaml";
+	config_v5.file_model_cfg = "../configs/yolov5s.cfg";
 	config_v5.file_model_weights = "../configs/yolov5s.weights";
 	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;

@@ -39,6 +39,7 @@ SOFTWARE.
 #include "chunk.h"
 #include <set>
 #include <math.h>
+#include <algorithm> 
 #include "NvInfer.h"
 
 #include "ds_image.h"
@@ -83,7 +84,7 @@ public:
         switch (severity)
         {
         case Severity::kINTERNAL_ERROR: std::cerr << "INTERNAL_ERROR: "; break;
-        case Severity::kERROR: std::cerr << "ERROR: "; break;
+		case Severity::kERROR: std::cerr << "ERROR: " << msg << std::endl;; break;
         case Severity::kWARNING: std::cerr << "WARNING: "; break;
         case Severity::kINFO: std::cerr << "INFO: "; break;
        // default: std::cerr << "UNKNOWN: "; break;
@@ -192,12 +193,36 @@ nvinfer1::ILayer * layer_split(const int n_layer_index_,
 
 std::vector<int> parse_int_list(const std::string s_args_);
 
-nvinfer1::ILayer* net_focus(const int layer_index,
+nvinfer1::ILayer* layer_focus(const int layer_index,
 	std::map<std::string, std::string>& block,
-	std::vector<float>& weights,
+	std::map<std::string, std::vector<float>>& weights,
 	nvinfer1::ITensor* input,
-	const int& inputChannels,
+	const int out_channels_,
+	const int kernel_size_,
 	std::vector<nvinfer1::Weights>& trtWeights,
-	int &ptr,
 	nvinfer1::INetworkDefinition* network);
+
+nvinfer1::ILayer * layer_conv_bn_act(
+	const std::string s_layer_name_,
+	std::map<std::string, std::vector<float>> &vec_wts_,//conv-bn
+	nvinfer1::ITensor* input_,
+	nvinfer1::INetworkDefinition* network_,
+	const int n_filters_,
+	const int n_kernel_size_ = 3,
+	const int n_stride_ = 1,
+	const int group_ =1,
+	const bool b_padding_ = true,
+	const bool b_bn_ = true,
+	const std::string s_act_ = "leaky");
+
+nvinfer1::ILayer * layer_bottleneck_csp(
+	std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	const int n_depth_ = 1,
+	const bool b_short_cut_ = true,
+	const int group_ = 1,
+	const float e_ = 0.5);
 #endif

@@ -507,11 +507,59 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     destroyNetworkUtils(trtWeights);
 }
 
+int make_division(const float f_in_, const int n_divisor_)
+{
+	return ceil(f_in_ / n_divisor_)*n_divisor_;
+}
+
+void parse_bottleneck_args(const std::string s_args_, int &n_out_ch_, bool &b_shourt_cut_)
+{
+	std::string s_args = s_args_;
+	while (!s_args.empty())
+	{
+		int npos = s_args.find_first_of(',');
+		if (npos != -1)
+		{
+			n_out_ch_ = std::stoi(trim(s_args.substr(0, npos)));
+			s_args.erase(0, npos + 1);
+		}
+		else
+		{
+			try
+			{
+				n_out_ch_ = std::stoi(trim(s_args.substr(0, npos)));
+			}
+			catch (const std::exception&)
+			{
+
+			}
+			if ("False" == trim(s_args))
+			{
+				b_shourt_cut_ = false;
+			}
+			else if ("True" == trim(s_args))
+			{
+				b_shourt_cut_ = true;
+			}
+			break;
+		}
+	}
+}
+
+float round_f(const float in_, const int precision_)
+{
+	float out;
+	std::stringstream ss;
+	ss << std::setprecision(precision_) << in_;
+	ss >> out;
+	return out;
+}
+
 void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	Int8EntropyCalibrator* calibrator )
 {
-	std::map<int, std::vector<float>> ind_wts;
-	load_weights_v5(m_WtsFilePath, ind_wts);
+	std::map<std::string, std::vector<float>> model_wts;
+	load_weights_v5(m_WtsFilePath, model_wts);
 	std::vector<nvinfer1::Weights> trtWeights;
 	int channels = m_InputC;
 	m_Builder = nvinfer1::createInferBuilder(m_Logger);
@@ -553,6 +601,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	nvinfer1::ITensor* previous = elementDivide->getOutput(0);
 	std::vector<nvinfer1::ITensor*> tensorOutputs;
 	int n_layer_wts_index = 0;
+	int n_output = 3 * (_n_classes + 5);
 	for (uint32_t i = 0; i < m_configBlocks.size(); ++i)
 	{
 		assert(getNumChannels(previous) == channels);
@@ -560,37 +609,84 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 
 		if ("net" == m_configBlocks.at(i).at("type") )
 		{
-			printLayerInfo("", "layer", "     inp_size", "     out_size", "weightPtr");
+			printLayerInfo("", "layer", "     inp_size", "     out_size","");
 		}
 		else if ("Focus" == m_configBlocks.at(i).at("type"))
 		{
-			int ptr = 0;
 			std::string inputVol = dimsToString(previous->getDimensions());
-			nvinfer1::ILayer* out = net_focus(i,
+			int ptr = 0;
+			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
+			int filters = args[0];
+			int kernel_size = args[1];
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			nvinfer1::ILayer* out = layer_focus(i,
 				m_configBlocks.at(i),
-				ind_wts[i],
+				model_wts,
 				previous,
-				channels,
+				n_out_channel,
+				kernel_size,
 				trtWeights,
-				ptr,
 				m_Network);
 			previous = out->getOutput(0);
 			assert(previous != nullptr);
 			channels = getNumChannels(previous);
 			std::string outputVol = dimsToString(previous->getDimensions());
 			tensorOutputs.push_back(out->getOutput(0));
-			printLayerInfo(layerIndex,"Focus", inputVol, outputVol, std::to_string(ptr));
-			if (ind_wts[i].size() != ptr)
-			{
-				std::cout << "layer:" << i << "Number of unused weights left : " << ind_wts[i].size() - ptr << std::endl;
-				assert(0);
-			}
-		}
+			printLayerInfo(layerIndex,"Focus", inputVol, outputVol, "");
+		}//end focus
+		else if ("Conv" == m_configBlocks.at(i).at("type"))
+		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int ptr = 0;
+			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
+			int filters = args[0];
+			int kernel_size = args[1];
+			int sride = args[2];
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			nvinfer1::ILayer * out = layer_conv_bn_act("model."+std::to_string(i-1), model_wts, previous, m_Network, n_out_channel, kernel_size, sride);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "Conv", inputVol, outputVol, "");
+		}//end Conv
+		else if ("BottleneckCSP" == m_configBlocks.at(i).at("type"))
+		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int ptr = 0;
+			int filters = 0;
+			bool short_cut = false;
+			int number = std::stoi(m_configBlocks[i]["number"]);
+			parse_bottleneck_args(m_configBlocks[i]["args"], filters, short_cut);
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			int n_depth = (number > 1) ? (std::max(int(round(_f_depth_multiple *number)), 1)) : number;
+			std::string s_model_name = "model." + std::to_string(i- 1);
+			auto out = layer_bottleneck_csp(s_model_name, model_wts, m_Network, previous, n_out_channel, n_depth, short_cut);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "BottleneckCSP", inputVol, outputVol, "");
+		}// bottleneckCSP
+		else if ("SPP" == m_configBlocks.at(i).at("type"))
+		{
+		}//end SPP
+		else if ("nn.Upsample" == m_configBlocks.at(i).at("type"))
+		{
+		}//end upsample
+		else if ("Concat" == m_configBlocks.at(i).at("type"))
+		{
+		}//end concat
+		else if ("Detect" == m_configBlocks.at(i).at("type"))
+		{
+		}//end detect
 	}
 
 }
 
-void Yolo::load_weights_v5(const std::string s_weights_path_,std::map<int,std::vector<float>> &vec_wts_)
+void Yolo::load_weights_v5(const std::string s_weights_path_,std::map<std::string,std::vector<float>> &vec_wts_)
 {
 	vec_wts_.clear();
 	assert(fileExists(s_weights_path_));
@@ -602,16 +698,15 @@ void Yolo::load_weights_v5(const std::string s_weights_path_,std::map<int,std::v
 	{
 		if(line.size()==0)continue;
 		std::stringstream iss(line);
-		int index, size;
-		iss >> index >> size;
+		std::string wts_name;
+		iss >> wts_name ;
 		std::vector<float> weights;
-		for (int i=0;i<size;++i)
+		uint32_t n_str;
+		while(iss >> std::hex >> n_str)
 		{
-			uint32_t n_str;
-			iss >>std::hex>> n_str;
 			weights.push_back(reinterpret_cast<float&>(n_str));
 		}
-		vec_wts_[index] = weights;
+		vec_wts_[wts_name] = weights;
 	}
 	std::cout << "Loading complete!" << std::endl;
 }

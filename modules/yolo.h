@@ -193,7 +193,7 @@ private:
 
 private:
 	Timer _timer;
-	void Yolo::load_weights_v5(const std::string s_weights_path_, std::map<int, std::vector<float>> &vec_wts_);
+	void Yolo::load_weights_v5(const std::string s_weights_path_, std::map<std::string, std::vector<float>> &vec_wts_);
 };
 
 #endif // _YOLO_H_

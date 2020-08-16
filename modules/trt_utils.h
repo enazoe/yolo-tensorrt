@@ -130,6 +130,8 @@ public:
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages, const int& inputH,
                          const int& inputW);
 std::string trim(std::string s);
+std::string triml(std::string s, const char* t);
+std::string trimr(std::string s, const char* t);
 float clamp(const float val, const float minVal, const float maxVal);
 bool fileExists(const std::string fileName, bool verbose = true);
 BBox convertBBoxNetRes(const float& bx, const float& by, const float& bw, const float& bh,
@@ -225,4 +227,17 @@ nvinfer1::ILayer * layer_bottleneck_csp(
 	const bool b_short_cut_ = true,
 	const int group_ = 1,
 	const float e_ = 0.5);
+
+nvinfer1::ILayer * layer_spp(std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	const std::vector<int> &vec_args_);
+
+nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int n_scale_);
 #endif

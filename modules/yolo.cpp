@@ -546,6 +546,53 @@ void parse_bottleneck_args(const std::string s_args_, int &n_out_ch_, bool &b_sh
 	}
 }
 
+void parse_spp_args(const std::string s_args_, int &n_filters_, std::vector<int> &vec_k_)
+{
+	std::string s_args = s_args_;
+	vec_k_.clear();
+	size_t pos = 0;
+	std::string token;
+	std::string delimiter = ",";
+	bool w = 0;
+	while ((pos = s_args.find(delimiter)) != std::string::npos) 
+	{
+		token = s_args.substr(0, pos);
+		if (!w)
+		{
+			n_filters_ = std::stoi(triml(trim(token), "["));
+			w = true;
+		}
+		else
+		{
+			vec_k_.push_back(std::stoi(triml(trim(token), "[")));
+		}
+		s_args.erase(0, pos + delimiter.length());
+	}
+	vec_k_.push_back(std::stoi(triml(trim(s_args), "]")));
+}
+
+void parse_upsample(const std::string s_args_, int &n_filters_)
+{
+	std::string s_args = s_args_;
+	size_t pos = 0;
+	std::string token;
+	std::string delimiter = ",";
+	bool w = 0;
+	while ((pos = s_args.find(delimiter)) != std::string::npos) 
+	{
+		token = s_args.substr(0, pos);
+		try
+		{
+			n_filters_ = std::stoi(trim(token));
+		}
+		catch (const std::exception&)
+		{
+
+		}
+		s_args.erase(0, pos + delimiter.length());
+	}
+}
+
 float round_f(const float in_, const int precision_)
 {
 	float out;
@@ -571,7 +618,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		std::cout << "Platform doesn't support this precision." << std::endl;
 		assert(0);
 	}
-
 	nvinfer1::ITensor* data = m_Network->addInput(
 		m_InputBlobName.c_str(),
 		nvinfer1::DataType::kFLOAT,
@@ -637,7 +683,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		else if ("Conv" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());
-			int ptr = 0;
 			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
 			int filters = args[0];
 			int kernel_size = args[1];
@@ -672,15 +717,64 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		}// bottleneckCSP
 		else if ("SPP" == m_configBlocks.at(i).at("type"))
 		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int filters = 0;
+			std::vector<int> vec_k;
+			parse_spp_args(m_configBlocks[i]["args"], filters, vec_k);
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			std::string s_model_name = "model." + std::to_string(i- 1);
+			auto out = layer_spp(s_model_name, model_wts, m_Network, previous, n_out_channel, vec_k);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "SPP", inputVol, outputVol, "");
 		}//end SPP
 		else if ("nn.Upsample" == m_configBlocks.at(i).at("type"))
 		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int scale = 0;
+			parse_upsample(m_configBlocks[i]["args"], scale);
+			std::string s_model_name = "model." + std::to_string(i - 1);
+			auto out = layer_upsample(s_model_name, model_wts, m_Network, previous, scale);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "Upsample", inputVol, outputVol, "");
 		}//end upsample
 		else if ("Concat" == m_configBlocks.at(i).at("type"))
 		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int n_dimension = std::stoi(m_configBlocks[i]["args"]);
+			std::vector<int> vec_from = parse_int_list(m_configBlocks[i]["from"]);
+			for (auto &f:vec_from)
+			{
+				f = f < 0 ? (f + i-1) : f;
+			}
+			nvinfer1::ITensor** concat_tensor
+				= reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * vec_from.size() ));
+			for (int i = 0; i < vec_from.size(); ++i)
+			{
+				concat_tensor[i] = tensorOutputs[vec_from[i]];
+			}
+			nvinfer1::IConcatenationLayer* concat
+				=m_Network->addConcatenation(concat_tensor, vec_from.size());
+			concat->setAxis(n_dimension-1);
+			assert(concat != nullptr);
+			previous = concat->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(concat->getOutput(0));
+			printLayerInfo(layerIndex, "Concat", inputVol, outputVol, "");
 		}//end concat
 		else if ("Detect" == m_configBlocks.at(i).at("type"))
 		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			std::vector<int> vec_from = parse_int_list(m_configBlocks[i]["from"]);
 		}//end detect
 	}
 

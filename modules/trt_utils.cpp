@@ -62,6 +62,17 @@ std::string trim(std::string s)
     return s;
 }
 
+std::string triml(std::string s,const char* t)
+{
+	s.erase(0, s.find_first_not_of(t));
+	return s;
+}
+std::string trimr(std::string s, const char* t)
+{
+	s.erase(s.find_last_not_of(t) + 1);
+	return s;
+}
+
 float clamp(const float val, const float minVal, const float maxVal)
 {
     assert(minVal <= maxVal);
@@ -881,6 +892,60 @@ nvinfer1::ILayer * layer_bottleneck_csp(
 	return cv4;
 }
 
+nvinfer1::ILayer * layer_spp(std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	const std::vector<int> &vec_args_)
+{
+	int c1 = dims2chw(input_->getDimensions())[0];
+	int c_ = c1 / 2;
+	nvinfer1::ILayer * x = layer_conv_bn_act(s_model_name_ + ".cv1", map_wts_, input_, network_, c_, 1);
+	nvinfer1::ITensor** concatInputs
+		= reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * (vec_args_.size()+1)));
+	concatInputs[0] = x->getOutput(0);
+	for (int ind = 0; ind < vec_args_.size(); ++ind)
+	{
+		nvinfer1::IPoolingLayer* pool
+			= network_->addPoolingNd(*x->getOutput(0),
+				nvinfer1::PoolingType::kMAX,
+				nvinfer1::DimsHW{ vec_args_[ind], vec_args_[ind] });
+		assert(pool);
+		int pad = (vec_args_[ind] - 1) / 2;
+		pool->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+		pool->setStrideNd(nvinfer1::DimsHW{1, 1});
+		concatInputs[ind + 1] = pool->getOutput(0);
+	}
+	nvinfer1::IConcatenationLayer* concat
+		= network_->addConcatenation(concatInputs, (vec_args_.size()+1));
+	concat->setAxis(0);
+	assert(concat != nullptr);
+	nvinfer1::ILayer *cv2 = layer_conv_bn_act(s_model_name_ + ".cv2", map_wts_, concat->getOutput(0), network_, c2_, 1);
+	assert(cv2 != nullptr);
+	return cv2;
+}
+
+
+nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_, 
+	const int n_scale_)
+{
+	int c1 = dims2chw(input_->getDimensions())[0];
+	float *deval = new float[c1*n_scale_*n_scale_];
+	for (int i = 0; i < c1*n_scale_*n_scale_; i++)
+	{
+		deval[i] = 1.0;
+	}
+	nvinfer1::Weights wts{ DataType::kFLOAT, deval, c1*n_scale_*n_scale_ };
+	nvinfer1::Weights bias{ DataType::kFLOAT, nullptr, 0 };
+	IDeconvolutionLayer* upsample = network_->addDeconvolutionNd(*input_,c1, DimsHW{ n_scale_, n_scale_ }, wts, bias);
+	upsample->setStrideNd(DimsHW{ n_scale_, n_scale_ });
+	upsample->setNbGroups(c1);
+	return upsample;
+}
 
 nvinfer1::ILayer * layer_conv_bn_act(
 	const std::string s_layer_name_,
@@ -1256,6 +1321,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     mm2->setName(mm2LayerName.c_str());
     return mm2;
 }
+
 
 void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,
                     std::string layerOutput, std::string weightPtr)

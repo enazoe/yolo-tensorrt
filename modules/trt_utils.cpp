@@ -823,10 +823,10 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	nvinfer1::INetworkDefinition* network_,
 	const int n_filters_,
 	const int n_kernel_size_,
-	const int n_stride_=1,
-	const bool b_bias_=false,
-	const int group_ = 1,
-	const bool b_padding_=true)
+	const int n_stride_,
+	const bool b_bias_,
+	const int group_ ,
+	const bool b_padding_)
 {
 	int pad = b_padding_ ? ((n_kernel_size_ - 1) / 2) : 0;
 	std::vector<int> chw = dims2chw(input_->getDimensions());
@@ -1321,6 +1321,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     mm2->setName(mm2LayerName.c_str());
     return mm2;
 }
+
 
 
 void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,

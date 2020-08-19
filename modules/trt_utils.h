@@ -240,4 +240,16 @@ nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
 	nvinfer1::INetworkDefinition* network_,
 	nvinfer1::ITensor* input_,
 	const int n_scale_);
+
+nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
+	std::map<std::string, std::vector<float>>&vec_wts_,//conv-bn
+	nvinfer1::ITensor* input_,
+	nvinfer1::INetworkDefinition* network_,
+	const int n_filters_,
+	const int n_kernel_size_,
+	const int n_stride_ = 1,
+	const bool b_bias_ = false,
+	const int group_ = 1,
+	const bool b_padding_ = true);
+std::vector<int> dims2chw(const nvinfer1::Dims d);
 #endif

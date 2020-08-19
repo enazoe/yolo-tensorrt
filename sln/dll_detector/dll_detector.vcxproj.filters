@@ -70,5 +70,8 @@
     <CudaCompile Include="..\..\modules\chunk.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\..\modules\detect.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

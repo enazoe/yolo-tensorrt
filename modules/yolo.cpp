@@ -571,6 +571,29 @@ void parse_spp_args(const std::string s_args_, int &n_filters_, std::vector<int>
 	vec_k_.push_back(std::stoi(triml(trim(s_args), "]")));
 }
 
+std::vector<std::string> parse_str_list(const std::string s_args_)
+{
+	std::string s_args = s_args_;
+	std::vector<std::string> vec_args;
+	while (!s_args.empty())
+	{
+		int npos = s_args.find_first_of(',');
+		if (npos != -1)
+		{
+			std::string v =trimr( triml(trim(s_args.substr(0, npos)),"'"),"'");
+			vec_args.push_back(v);
+			s_args.erase(0, npos + 1);
+		}
+		else
+		{
+			std::string v =trimr( triml(trim(s_args.substr(0, npos)),"'"),"'");
+			vec_args.push_back(v);
+			break;
+		}
+	}
+	return vec_args;
+}
+
 void parse_upsample(const std::string s_args_, int &n_filters_)
 {
 	std::string s_args = s_args_;
@@ -775,12 +798,26 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());
 			std::vector<int> vec_from = parse_int_list(m_configBlocks[i]["from"]);
+			for (auto &f : vec_from)
+			{
+				f = f < 0 ? (f + i - 1) : f;
+			}
+			std::vector<std::string> vec_args = parse_str_list(m_configBlocks[i]["args"]);
+			std::string s_model_name = "model." + std::to_string(i - 1);
+			for (int i = 0; i < vec_from.size(); ++i)
+			{
+				int n_filters = (5 + _n_classes) * 3;
+				int from = vec_from[i];
+				auto conv = layer_conv(s_model_name+".m."+std::to_string(i),
+					model_wts, tensorOutputs[from], m_Network, n_filters,1);
+			}
 		}//end detect
 	}
 
 }
 
-void Yolo::load_weights_v5(const std::string s_weights_path_,std::map<std::string,std::vector<float>> &vec_wts_)
+void Yolo::load_weights_v5(const std::string s_weights_path_,
+	std::map<std::string,std::vector<float>> &vec_wts_)
 {
 	vec_wts_.clear();
 	assert(fileExists(s_weights_path_));

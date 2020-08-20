@@ -17,17 +17,17 @@ std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH,
 	const float* detections = &tensor.hostBuffer[imageIdx * tensor.volume];
 
 	std::vector<BBoxInfo> binfo;
-	for (uint32_t y = 0; y < tensor.gridSize; ++y)
+	for (uint32_t y = 0; y < tensor.grid_h; ++y)
 	{
-		for (uint32_t x = 0; x < tensor.gridSize; ++x)
+		for (uint32_t x = 0; x < tensor.grid_w; ++x)
 		{
 			for (uint32_t b = 0; b < tensor.numBBoxes; ++b)
 			{
 				const float pw = tensor.anchors[tensor.masks[b] * 2];
 				const float ph = tensor.anchors[tensor.masks[b] * 2 + 1];
 
-				const int numGridCells = tensor.gridSize * tensor.gridSize;
-				const int bbindex = y * tensor.gridSize + x;
+				const int numGridCells = tensor.grid_h * tensor.grid_w;
+				const int bbindex = y * tensor.grid_w+ x;
 				const float bx
 					= x + detections[bbindex + numGridCells * (b * (5 + tensor.numClasses) + 0)];
 
@@ -60,7 +60,7 @@ std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH,
 
 				if (maxProb > m_ProbThresh)
 				{
-					addBBoxProposal(bx, by, bw, bh, tensor.stride, scalingFactor, xOffset, yOffset,
+					addBBoxProposal(bx, by, bw, bh, tensor.stride_h, scalingFactor, xOffset, yOffset,
 						maxIndex, maxProb, imageW, imageH, binfo);
 				}
 			}

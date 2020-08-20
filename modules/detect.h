@@ -7,12 +7,28 @@
 
 namespace nvinfer1
 {
+	template <typename T>
+	void write(char*& buffer, const T& val)
+	{
+		*reinterpret_cast<T*>(buffer) = val;
+		buffer += sizeof(T);
+	}
+
+	template <typename T>
+	void read(const char*& buffer, T& val)
+	{
+		val = *reinterpret_cast<const T*>(buffer);
+		buffer += sizeof(T);
+	}
+
 	class Detect :public IPluginV2IOExt
 	{
 	public:
+		Detect();
 		Detect(const void* data, size_t length);
 		Detect(const uint32_t &n_anchor_, const uint32_t &_n_classes_,
-			const uint32_t &n_grid_h_, const uint32_t &n_grid_w_);
+			const uint32_t &n_grid_h_, const uint32_t &n_grid_w_/*,
+			const uint32_t &n_stride_h_, const uint32_t &n_stride_w_*/);
 		~Detect();
 		int getNbOutputs()const override
 		{
@@ -80,23 +96,13 @@ namespace nvinfer1
 		}
 		IPluginV2IOExt* clone() const override;
 	private:
-		template <typename T>
-		void write(char*& buffer, const T& val)
-		{
-			*reinterpret_cast<T*>(buffer) = val;
-			buffer += sizeof(T);
-		}
-
-		template <typename T>
-		void read(const char*& buffer, T& val)
-		{
-			val = *reinterpret_cast<const T*>(buffer);
-			buffer += sizeof(T);
-		}
+		
 		uint32_t _n_anchor;
 		uint32_t _n_classes;
 		uint32_t _n_grid_h;
 		uint32_t _n_grid_w;
+		//uint32_t _n_stride_h;
+	//	uint32_t _n_stride_w;
 		uint64_t _n_output_size;
 		std::string _s_plugin_namespace;
 	}; //end detect
@@ -114,6 +120,7 @@ namespace nvinfer1
 		void setPluginNamespace(const char* libNamespace) override;
 		const char* getPluginNamespace() const override;
 	private:
+		std::string _s_name_space;
 		static PluginFieldCollection _fc;
 		static std::vector<PluginField> _vec_plugin_attributes;
 	};//end detect creator

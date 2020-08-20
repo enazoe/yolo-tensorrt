@@ -39,6 +39,7 @@ SOFTWARE.
 #include <vector>
 #include "class_timer.hpp"
 #include "opencv2/opencv.hpp"
+#include "detect.h"
 //#include "logging.h"
 
 /**
@@ -77,7 +78,11 @@ struct TensorInfo
 {
     std::string blobName;
     uint32_t stride{0};
+    uint32_t stride_h{0};
+    uint32_t stride_w{0};
     uint32_t gridSize{0};
+	uint32_t grid_h{ 0 };
+	uint32_t grid_w{ 0 };
     uint32_t numClasses{0};
     uint32_t numBBoxes{0};
     uint64_t volume{0};

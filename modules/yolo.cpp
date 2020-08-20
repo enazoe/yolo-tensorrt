@@ -30,6 +30,10 @@ SOFTWARE.
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+
+using namespace nvinfer1;
+REGISTER_TENSORRT_PLUGIN(DetectPluginCreator);
+
 Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const InferParams& inferParams) :
     m_EnginePath(networkInfo.enginePath),
     m_NetworkType(networkInfo.networkType),
@@ -462,8 +466,9 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 			  << " precision : " << m_Precision << " and batch size :" << m_BatchSize << std::endl;*/
 
     m_Builder->setMaxBatchSize(m_BatchSize);
-    m_Builder->setMaxWorkspaceSize(1 << 20);
+    //m_Builder->setMaxWorkspaceSize(1 << 20);
 
+	config->setMaxWorkspaceSize(1 << 20);
     if (dataType == nvinfer1::DataType::kINT8)
     {
         assert((calibrator != nullptr) && "Invalid calibrator for INT8 precision");
@@ -804,16 +809,109 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			std::vector<std::string> vec_args = parse_str_list(m_configBlocks[i]["args"]);
 			std::string s_model_name = "model." + std::to_string(i - 1);
-			for (int i = 0; i < vec_from.size(); ++i)
+			for (int ind_from = 0; ind_from < vec_from.size(); ++ind_from)
 			{
 				int n_filters = (5 + _n_classes) * 3;
-				int from = vec_from[i];
-				auto conv = layer_conv(s_model_name+".m."+std::to_string(i),
+				int from = vec_from[ind_from];
+				auto conv = layer_conv(s_model_name+".m."+std::to_string(ind_from),
 					model_wts, tensorOutputs[from], m_Network, n_filters,1);
+
+				auto tensor_conv = conv->getOutput(0);
+				TensorInfo& curYoloTensor = m_OutputTensors.at(ind_from);
+				std::vector<int> chw = dims2chw(tensor_conv->getDimensions());
+				curYoloTensor.grid_h = chw[1];
+				curYoloTensor.grid_w = chw[2];
+				curYoloTensor.stride_h = m_InputH / curYoloTensor.grid_h;
+				curYoloTensor.stride_w = m_InputW / curYoloTensor.grid_w;
+				m_OutputTensors.at(ind_from).volume = curYoloTensor.grid_h
+					* curYoloTensor.grid_w
+					* (curYoloTensor.numBBoxes * (5 + curYoloTensor.numClasses));
+				std::string layerName = "yolo_" + std::to_string(ind_from);
+				curYoloTensor.blobName = layerName;
+				/*auto creator = getPluginRegistry()->getPluginCreator("DETECT_TRT", "1.0");
+				const nvinfer1::PluginFieldCollection* pluginData = creator->getFieldNames();
+				nvinfer1::IPluginV2 *yoloPlugin = creator->createPlugin(("detect" + std::to_string(ind_from)).c_str(), pluginData);*/
+				nvinfer1::IPluginV2 *yoloPlugin = new nvinfer1::Detect(curYoloTensor.numBBoxes,
+					curYoloTensor.numClasses,
+					curYoloTensor.grid_h,
+					curYoloTensor.grid_w);
+				assert(yoloPlugin != nullptr);
+				auto yolo = m_Network->addPluginV2(&tensor_conv, 1, *yoloPlugin);
+				assert(yolo != nullptr);
+
+				yolo->setName(layerName.c_str());
+				std::string inputVol = dimsToString(tensorOutputs[from]->getDimensions());
+				previous = yolo->getOutput(0);
+				assert(previous != nullptr);
+				previous->setName(layerName.c_str());
+				std::string outputVol = dimsToString(previous->getDimensions());
+				m_Network->markOutput(*previous);
+				channels = getNumChannels(previous);
+				tensorOutputs.push_back(yolo->getOutput(0));
+				printLayerInfo(layerIndex, "detect"+std::to_string(ind_from), inputVol, outputVol, "");
 			}
 		}//end detect
+		else
+		{
+			std::cout << "Unsupported layer type --> \"" << m_configBlocks.at(i).at("type") << "\""
+				<< std::endl;
+			assert(0);
+		}
+	}
+	if (fileExists(m_EnginePath))
+	{
+		std::cout << "Using previously generated plan file located at " << m_EnginePath
+			<< std::endl;
+		destroyNetworkUtils(trtWeights);
+		return;
 	}
 
+	/*std::cout << "Unable to find cached TensorRT engine for network : " << m_NetworkType
+	<< " precision : " << m_Precision << " and batch size :" << m_BatchSize << std::endl;*/
+
+	m_Builder->setMaxBatchSize(m_BatchSize);
+	config->setMaxWorkspaceSize(1 << 20);
+	if (dataType == nvinfer1::DataType::kINT8)
+	{
+		assert((calibrator != nullptr) && "Invalid calibrator for INT8 precision");
+		//  m_Builder->setInt8Mode(true);
+		config->setFlag(nvinfer1::BuilderFlag::kINT8);
+		//   m_Builder->setInt8Calibrator(calibrator);
+		config->setInt8Calibrator(calibrator);
+	}
+	else if (dataType == nvinfer1::DataType::kHALF)
+	{
+		config->setFlag(nvinfer1::BuilderFlag::kFP16);
+		//   m_Builder->setHalf2Mode(true);
+	}
+
+	m_Builder->allowGPUFallback(true);
+	int nbLayers = m_Network->getNbLayers();
+	int layersOnDLA = 0;
+	//   std::cout << "Total number of layers: " << nbLayers << std::endl;
+	for (uint32_t i = 0; i < nbLayers; i++)
+	{
+		nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
+		if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
+		{
+			m_Builder->setDeviceType(curLayer, nvinfer1::DeviceType::kDLA);
+			layersOnDLA++;
+			std::cout << "Set layer " << curLayer->getName() << " to run on DLA" << std::endl;
+		}
+	}
+	//   std::cout << "Total number of layers on DLA: " << layersOnDLA << std::endl;
+
+	// Build the engine
+	std::cout << "Building the TensorRT Engine..." << std::endl;
+	m_Engine = m_Builder->buildEngineWithConfig(*m_Network, *config);
+	assert(m_Engine != nullptr);
+	std::cout << "Building complete!" << std::endl;
+
+	// Serialize the engine
+	writePlanFileToDisk();
+
+	// destroy
+	destroyNetworkUtils(trtWeights);
 }
 
 void Yolo::load_weights_v5(const std::string s_weights_path_,

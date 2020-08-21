@@ -195,9 +195,8 @@ nvinfer1::ILayer * layer_split(const int n_layer_index_,
 
 std::vector<int> parse_int_list(const std::string s_args_);
 
-nvinfer1::ILayer* layer_focus(const int layer_index,
-	std::map<std::string, std::string>& block,
-	std::map<std::string, std::vector<float>>& weights,
+nvinfer1::ILayer* layer_focus(std::string s_model_name_,
+	std::map<std::string, std::vector<float>>& map_wts_,
 	nvinfer1::ITensor* input,
 	const int out_channels_,
 	const int kernel_size_,

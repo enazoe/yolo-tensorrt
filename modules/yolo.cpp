@@ -688,13 +688,11 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		else if ("Focus" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());
-			int ptr = 0;
 			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
 			int filters = args[0];
 			int kernel_size = args[1];
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
-			nvinfer1::ILayer* out = layer_focus(i,
-				m_configBlocks.at(i),
+			nvinfer1::ILayer* out = layer_focus("model." + std::to_string(i - 1),
 				model_wts,
 				previous,
 				n_out_channel,
@@ -727,7 +725,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		else if ("BottleneckCSP" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());
-			int ptr = 0;
 			int filters = 0;
 			bool short_cut = false;
 			int number = std::stoi(m_configBlocks[i]["number"]);

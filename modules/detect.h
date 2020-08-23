@@ -26,8 +26,8 @@ namespace nvinfer1
 	public:
 		Detect();
 		Detect(const void* data, size_t length);
-		Detect(const uint32_t &n_anchor_, const uint32_t &_n_classes_,
-			const uint32_t &n_grid_h_, const uint32_t &n_grid_w_/*,
+		Detect(const uint32_t n_anchor_, const uint32_t _n_classes_,
+			const uint32_t n_grid_h_, const uint32_t n_grid_w_/*,
 			const uint32_t &n_stride_h_, const uint32_t &n_stride_w_*/);
 		~Detect();
 		int getNbOutputs()const override

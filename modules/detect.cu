@@ -34,12 +34,12 @@ namespace nvinfer1
 		read(d,_n_grid_h);
 		read(d, _n_grid_w);
 		read(d, _n_output_size);
-		printf("anchor:%d,classes:%d,gh:%d,gw:%d,size:%d\n", _n_anchor, _n_classes, _n_grid_h, _n_grid_w, _n_output_size);
+		//printf("anchor:%d,classes:%d,gh:%d,gw:%d,size:%d\n", _n_anchor, _n_classes, _n_grid_h, _n_grid_w, _n_output_size);
 		assert(d == a + length);
 	}
 
-	Detect::Detect(const uint32_t &n_anchor_, const uint32_t &n_classes_,
-		const uint32_t &n_grid_h_, const uint32_t &n_grid_w_/*,
+	Detect::Detect(const uint32_t n_anchor_, const uint32_t n_classes_,
+		const uint32_t n_grid_h_, const uint32_t n_grid_w_/*,
 		const uint32_t &n_stride_h_, const uint32_t &n_stride_w_*/):
 		_n_anchor(n_anchor_),
 		_n_classes(n_classes_),
@@ -68,7 +68,7 @@ namespace nvinfer1
 		{
 			return;
 		}
-
+	//	printf("grid_h:%d,grid_w:%d,class:%d,anchor:%d\n", n_grid_h_, n_grid_w_, n_classes_, n_anchor_);
 		const int numGridCells = n_grid_h_ * n_grid_w_;
 		const int bbindex = y_id * n_grid_w_ + x_id;
 

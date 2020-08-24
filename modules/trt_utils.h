@@ -79,14 +79,14 @@ public:
     void log(nvinfer1::ILogger::Severity severity, const char* msg) override
     {
         // suppress info-level messages
-        if (severity == Severity::kINFO) return;
+       // if (severity == Severity::kINFO) return;
 
         switch (severity)
         {
-        case Severity::kINTERNAL_ERROR: std::cerr << "INTERNAL_ERROR: "; break;
-		case Severity::kERROR: std::cerr << "ERROR: " << msg << std::endl;; break;
-        case Severity::kWARNING: std::cerr << "WARNING: "; break;
-        case Severity::kINFO: std::cerr << "INFO: "; break;
+        case Severity::kINTERNAL_ERROR: std::cerr << "INTERNAL_ERROR: " << msg << std::endl; break;
+		case Severity::kERROR: std::cerr << "ERROR: " << msg << std::endl; break;
+        case Severity::kWARNING: std::cerr << "WARNING: " << msg << std::endl; break;
+        case Severity::kINFO: std::cerr << "INFO: " << msg << std::endl; break;
        // default: std::cerr << "UNKNOWN: "; break;
         }
       //  std::cerr << msg << std::endl;
@@ -251,4 +251,6 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	const int group_ = 1,
 	const bool b_padding_ = true);
 std::vector<int> dims2chw(const nvinfer1::Dims d);
+
+extern std::map<std::string, std::string> map_used;
 #endif

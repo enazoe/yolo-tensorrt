@@ -68,7 +68,7 @@ namespace nvinfer1
 		{
 			return;
 		}
-	//	printf("grid_h:%d,grid_w:%d,class:%d,anchor:%d\n", n_grid_h_, n_grid_w_, n_classes_, n_anchor_);
+		//	printf("grid_h:%d,grid_w:%d,class:%d,anchor:%d\n", n_grid_h_, n_grid_w_, n_classes_, n_anchor_);
 		const int numGridCells = n_grid_h_ * n_grid_w_;
 		const int bbindex = y_id * n_grid_w_ + x_id;
 
@@ -86,9 +86,8 @@ namespace nvinfer1
 		output_[bbindex + numGridCells * (z_id * (5 + n_classes_) + 3)]
 			= h*h;
 
-		float c = sigmoidGPU(input_[bbindex + numGridCells * (z_id * (5 + n_classes_) + 4)]);
 		output_[bbindex + numGridCells * (z_id * (5 + n_classes_) + 4)]
-			= c;
+			= sigmoidGPU(input_[bbindex + numGridCells * (z_id * (5 + n_classes_) + 4)]);
 		for (uint32_t i = 0; i < n_classes_; ++i)
 		{
 			output_[bbindex + numGridCells * (z_id * (5 + n_classes_) + (5 + i))]

@@ -691,11 +691,11 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
 			int filters = args[0];
 			int kernel_size = args[1];
-			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			filters = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
 			nvinfer1::ILayer* out = layer_focus("model." + std::to_string(i - 1),
 				model_wts,
 				previous,
-				n_out_channel,
+				filters,
 				kernel_size,
 				trtWeights,
 				m_Network);
@@ -712,9 +712,9 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
 			int filters = args[0];
 			int kernel_size = args[1];
-			int sride = args[2];
+			int stride = args[2];
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
-			nvinfer1::ILayer * out = layer_conv_bn_act("model."+std::to_string(i-1), model_wts, previous, m_Network, n_out_channel, kernel_size, sride);
+			nvinfer1::ILayer * out = layer_conv_bn_act("model."+std::to_string(i-1), model_wts, previous, m_Network, n_out_channel, kernel_size, stride);
 			previous = out->getOutput(0);
 			assert(previous != nullptr);
 			channels = getNumChannels(previous);
@@ -787,7 +787,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			nvinfer1::IConcatenationLayer* concat
 				=m_Network->addConcatenation(concat_tensor, vec_from.size());
-			concat->setAxis(n_dimension-1);
+		//	concat->setAxis(n_dimension-1);
 			assert(concat != nullptr);
 			previous = concat->getOutput(0);
 			assert(previous != nullptr);
@@ -811,7 +811,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				int n_filters = (5 + _n_classes) * 3;
 				int from = vec_from[ind_from];
 				auto conv = layer_conv(s_model_name+".m."+std::to_string(ind_from),
-					model_wts, tensorOutputs[from], m_Network, n_filters,1);
+					model_wts, tensorOutputs[from], m_Network, n_filters,1,1,true);
 
 				auto tensor_conv = conv->getOutput(0);
 				TensorInfo& curYoloTensor = m_OutputTensors.at(ind_from);
@@ -842,8 +842,8 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				assert(previous != nullptr);
 				previous->setName(layerName.c_str());
 				std::string outputVol = dimsToString(previous->getDimensions());
-				m_Network->markOutput(*previous);
-				channels = getNumChannels(previous);
+				m_Network->markOutput(*yolo->getOutput(0));
+				channels = getNumChannels(yolo->getOutput(0));
 				tensorOutputs.push_back(yolo->getOutput(0));
 				printLayerInfo(layerIndex, "detect"+std::to_string(ind_from), inputVol, outputVol, "");
 			}
@@ -854,6 +854,10 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				<< std::endl;
 			assert(0);
 		}
+	}
+	if (1)
+	{
+		std::cout << "used wts map size:" << map_used.size() << std::endl;
 	}
 	if (fileExists(m_EnginePath))
 	{
@@ -867,7 +871,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	<< " precision : " << m_Precision << " and batch size :" << m_BatchSize << std::endl;*/
 
 	m_Builder->setMaxBatchSize(m_BatchSize);
-	config->setMaxWorkspaceSize(1 << 20);
+	config->setMaxWorkspaceSize(1<<20);
 	if (dataType == nvinfer1::DataType::kINT8)
 	{
 		assert((calibrator != nullptr) && "Invalid calibrator for INT8 precision");

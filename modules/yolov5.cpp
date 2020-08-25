@@ -7,6 +7,9 @@ YoloV5::YoloV5(const uint32_t batch_size_,
 	const InferParams &infer_params_) :
 	Yolo(batch_size_, network_info_, infer_params_) {};
 
+
+
+
 std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH, const int imageW, const TensorInfo& tensor)
 {
 	float scalingFactor
@@ -60,8 +63,7 @@ std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH,
 
 				if (maxProb > m_ProbThresh)
 				{
-					addBBoxProposal(bx, by, bw, bh, tensor.stride_h, scalingFactor, xOffset, yOffset,
-						maxIndex, maxProb, imageW, imageH, binfo);
+					add_bbox_proposal(bx, by, bw, bh, tensor.stride_h, tensor.stride_w,maxIndex, maxProb, imageW, imageH, binfo);
 				}
 			}
 		}

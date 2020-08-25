@@ -726,7 +726,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());
 			int filters = 0;
-			bool short_cut = false;
+			bool short_cut =true;
 			int number = std::stoi(m_configBlocks[i]["number"]);
 			parse_bottleneck_args(m_configBlocks[i]["args"], filters, short_cut);
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
@@ -787,7 +787,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			nvinfer1::IConcatenationLayer* concat
 				=m_Network->addConcatenation(concat_tensor, vec_from.size());
-		//	concat->setAxis(n_dimension-1);
+			concat->setAxis(n_dimension-1);
 			assert(concat != nullptr);
 			previous = concat->getOutput(0);
 			assert(previous != nullptr);
@@ -854,10 +854,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				<< std::endl;
 			assert(0);
 		}
-	}
-	if (1)
-	{
-		std::cout << "used wts map size:" << map_used.size() << std::endl;
 	}
 	if (fileExists(m_EnginePath))
 	{

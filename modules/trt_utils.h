@@ -37,6 +37,7 @@ SOFTWARE.
 
 #include "mish.h"
 #include "chunk.h"
+#include "hardswish.h"
 #include <set>
 #include <math.h>
 #include <algorithm> 
@@ -79,7 +80,7 @@ public:
     void log(nvinfer1::ILogger::Severity severity, const char* msg) override
     {
         // suppress info-level messages
-       // if (severity == Severity::kINFO) return;
+        if (severity == Severity::kINFO) return;
 
         switch (severity)
         {
@@ -87,9 +88,9 @@ public:
 		case Severity::kERROR: std::cerr << "ERROR: " << msg << std::endl; break;
         case Severity::kWARNING: std::cerr << "WARNING: " << msg << std::endl; break;
         case Severity::kINFO: std::cerr << "INFO: " << msg << std::endl; break;
-       // default: std::cerr << "UNKNOWN: "; break;
+      //  default: std::cerr <<"UNKNOW:"<< msg << std::endl;break;
         }
-      //  std::cerr << msg << std::endl;
+        
     }
 };
 
@@ -216,6 +217,10 @@ nvinfer1::ILayer * layer_conv_bn_act(
 	const bool b_bn_ = true,
 	const std::string s_act_ = "leaky");
 
+nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
+	nvinfer1::INetworkDefinition* network_,
+	const std::string s_act_ = "leaky");
+
 nvinfer1::ILayer * layer_bottleneck_csp(
 	std::string s_model_name_,
 	std::map<std::string, std::vector<float>> &map_wts_,
@@ -252,5 +257,6 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	const bool b_padding_ = true);
 std::vector<int> dims2chw(const nvinfer1::Dims d);
 
-extern std::map<std::string, std::string> map_used;
+
+
 #endif

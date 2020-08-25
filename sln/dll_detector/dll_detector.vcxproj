@@ -141,6 +141,7 @@
   <ItemGroup>
     <CudaCompile Include="..\..\modules\chunk.cu" />
     <CudaCompile Include="..\..\modules\detect.cu" />
+    <CudaCompile Include="..\..\modules\hardswish.cu" />
     <CudaCompile Include="..\..\modules\kernel.cu" />
     <CudaCompile Include="..\..\modules\mish.cu" />
   </ItemGroup>

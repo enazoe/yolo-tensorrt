@@ -31,8 +31,8 @@ SOFTWARE.
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 REGISTER_TENSORRT_PLUGIN(ChunkPluginCreator);
+REGISTER_TENSORRT_PLUGIN(HardswishPluginCreator);
 
-std::map<std::string, std::string> map_used;
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
 						const int& inputH,
                          const int& inputW)
@@ -778,11 +778,6 @@ nvinfer1::ILayer * layer_bn(const std::string s_layer_name_,
 		bn_var[i] = sqrt(bn_var[i] + 1.0e-5);
 	}
 	float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked.weight"][0];
-	map_used[s_layer_name_ + ".bn.weight"] = "";
-	map_used[s_layer_name_ + ".bn.bias"] = "";
-	map_used[s_layer_name_ + ".bn.running_mean"] = "";
-	map_used[s_layer_name_ + ".bn.running_var"] = "";
-	map_used[s_layer_name_ + ".bn.num_batches_tracked.weight"] = "";
 	// create the weights
 	nvinfer1::Weights shift{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
 	nvinfer1::Weights scale{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
@@ -814,16 +809,22 @@ nvinfer1::ILayer * layer_bn(const std::string s_layer_name_,
 
 nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
 	nvinfer1::INetworkDefinition* network_,
-	const std::string s_act_ = "leaky")
+	const std::string s_act_)
 {
-	nvinfer1::IActivationLayer *act = nullptr;
 	if (s_act_ == "leaky")
 	{
-		act = network_->addActivation(*input_, nvinfer1::ActivationType::kLEAKY_RELU);
+		auto act = network_->addActivation(*input_, nvinfer1::ActivationType::kLEAKY_RELU);
 		act->setAlpha(0.1);
 		assert(act != nullptr);
+		return act;
 	}
-	return act;
+	else if (s_act_ == "hardswish")
+	{
+		nvinfer1::IPluginV2 *hardswish_plugin = new nvinfer1::Hardswish();
+		auto act = network_->addPluginV2(&input_, 1, *hardswish_plugin);
+		assert(act != nullptr);
+		return act;
+	}
 }
 
 nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
@@ -848,7 +849,6 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	{
 		conv_wts[i] = map_wts_[s_layer_name_ + ".weight"][i];
 	}
-	map_used[s_layer_name_ + ".weight"] = "";
 	assert(size == (map_wts_[s_layer_name_ + ".weight"].size()));
 	convWt.values = conv_wts;
 	nvinfer1::Weights convBias{ nvinfer1::DataType::kFLOAT, nullptr, 0 };
@@ -863,7 +863,6 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 		assert(size_bias == (map_wts_[s_layer_name_ + ".bias"].size()));
 		convBias.values = conv_bias;
 		convBias.count = size_bias;
-		map_used[s_layer_name_ + ".bias"] = "";
 	}
 	nvinfer1::IConvolutionLayer* conv = network_->addConvolutionNd(
 		*input_,
@@ -980,19 +979,19 @@ nvinfer1::ILayer * layer_conv_bn_act(
 	nvinfer1::ITensor* input_,
 	nvinfer1::INetworkDefinition* network_,
 	const int n_filters_,
-	const int n_kernel_size_ ,
-	const int n_stride_ ,
+	const int n_kernel_size_,
+	const int n_stride_,
 	const int group_,
-	const bool b_padding_ ,
-	const bool b_bn_ ,
-	const std::string s_act_ )
+	const bool b_padding_,
+	const bool b_bn_,
+	const std::string s_act_)
 {
 	bool bias = (b_bn_ == true) ? false : true;
 	int pad = b_padding_ ? ((n_kernel_size_ - 1) / 2) : 0;
 	std::vector<int> chw = dims2chw(input_->getDimensions());
 
 	//conv
-	nvinfer1::ILayer * conv =nullptr;
+	nvinfer1::ILayer * conv = nullptr;
 	if (0)
 	{
 		int size = n_filters_ * chw[0] * n_kernel_size_ * n_kernel_size_;
@@ -1085,15 +1084,8 @@ nvinfer1::ILayer * layer_conv_bn_act(
 	{
 		bn = layer_bn(s_layer_name_, map_wts_, conv->getOutput(0), n_filters_, network_);
 	}//end bn
-	if (s_act_ == "leaky")
-	{
-		/*auto leaky = network_->addActivation(*bn->getOutput(0), nvinfer1::ActivationType::kLEAKY_RELU);
-		leaky->setAlpha(0.1);
-		assert(leaky != nullptr);
-		return leaky;*/
-
-		return layer_act(bn->getOutput(0), network_);
-	}
+	nvinfer1::ILayer * act = layer_act(bn->getOutput(0), network_,s_act_);
+	return act;
 }
 
 

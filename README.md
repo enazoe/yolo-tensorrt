@@ -13,7 +13,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 - [x] yolov4 , yolov4-tiny
 
-- [ ] yolov5
+- [x] yolov5  [tutorial](yolov5_tutorial.md)
 
 
 ## PLATFORM & PERFORMENCE

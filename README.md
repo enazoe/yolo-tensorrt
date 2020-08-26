@@ -1,19 +1,20 @@
-# Yolov3 Yolov4 TensorRT Implementation
+Yolov5 Yolov4 Yolov3 TensorRT Implementation
 
 ![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt) 
 
-__news:__ batch inference support
+__news:__ yolov5 support
 
 ![](./configs/result.jpg)
 ## INTRODUCTION
 
-The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet.
+The project is the encapsulation  of nvidia official yolo-tensorrt [implementation](https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps). And you must have the trained yolo model(__.weights__) and __.cfg__ file from the darknet (yolov3 & yolov4). For the [yolov5](https://github.com/ultralytics/yolov5) ,you should prepare the model file (yolov5s.yaml) and the trained weight file (yolov5s.pt) from pytorch.
 
-- [x] yolov3 , yolov3-tiny
+- [x] yolov5s , yolov5m , yolov5l , yolov5x [tutorial](yolov5_tutorial.md)
 
 - [x] yolov4 , yolov4-tiny
 
-- [x] yolov5  [tutorial](yolov5_tutorial.md)
+- [x] yolov3 , yolov3-tiny
+
 
 
 ## PLATFORM & PERFORMENCE

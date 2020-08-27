@@ -24,7 +24,7 @@ This is tensorrt c++ api implementation of yolov5.
 
 - get .cfg and .weights file
 
-    copy the script to yolov5 root dir and generate the cfg and weigths file.
+    copy the [script](./scripts/yaml2cfg.py) to yolov5 root dir and generate the cfg and weigths file.
     ```shell
     cp yolo-tensorrt/scripts/yaml2cfg.py yolov5/
     python yaml2cfg.py

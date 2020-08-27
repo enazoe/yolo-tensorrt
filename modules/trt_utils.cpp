@@ -777,7 +777,7 @@ nvinfer1::ILayer * layer_bn(const std::string s_layer_name_,
 	{
 		bn_var[i] = sqrt(bn_var[i] + 1.0e-5);
 	}
-	float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked.weight"][0];
+	//float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked.weight"][0];
 	// create the weights
 	nvinfer1::Weights shift{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
 	nvinfer1::Weights scale{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };

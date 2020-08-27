@@ -36,10 +36,18 @@ int main()
 	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v4_tiny.inference_precison = FP32;
 
+	Config config_v5;
+	config_v5.net_type = YOLOV5;
+	config_v5.detect_thresh = 0.5;
+	config_v5.file_model_cfg = "../configs/yolov5s.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-2.0/yolov5s.weights";
+	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
+	config_v5.inference_precison = FP32;
+
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v4_tiny);
+	detector->init(config_v5);
 	std::vector<BatchResult> batch_res;
 	Timer timer;
 	for (;;)

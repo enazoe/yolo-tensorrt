@@ -20,5 +20,6 @@ api/
 .vs/
 .vscode/
 *.log
-*.ipynb
 *.pt
+*.onnx
+.ipynb_checkpoints

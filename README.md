@@ -19,12 +19,6 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [x] yolov4 , yolov4-tiny
 - [x] yolov3 , yolov3-tiny
 
-<<<<<<< .mine
-- [ ] yolov5S
-=======
-
->>>>>>> .theirs
-
 
 ## PLATFORM & PERFORMENCE
 

@@ -845,9 +845,10 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	int size = n_filters_ * chw[0] * n_kernel_size_ * n_kernel_size_;
 	nvinfer1::Weights convWt{ nvinfer1::DataType::kFLOAT, nullptr, size };
 	float *conv_wts = new float[size];
+	std::vector<float> &vec_wts = map_wts_[s_layer_name_ + ".weight"];
 	for (int i = 0; i < size; ++i)
 	{
-		conv_wts[i] = map_wts_[s_layer_name_ + ".weight"][i];
+		conv_wts[i] = vec_wts[i];
 	}
 	assert(size == (map_wts_[s_layer_name_ + ".weight"].size()));
 	convWt.values = conv_wts;
@@ -856,11 +857,12 @@ nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
 	{
 		int size_bias = n_filters_;
 		float *conv_bias = new float[size_bias];
+		std::vector<float> &vec_bias = map_wts_[s_layer_name_ + ".bias"];
 		for (int i = 0; i < size_bias; ++i)
 		{
-			conv_bias[i] = map_wts_[s_layer_name_ + ".bias"][i];
+			conv_bias[i] = vec_bias[i];
 		}
-		assert(size_bias == (map_wts_[s_layer_name_ + ".bias"].size()));
+		assert(size_bias == vec_bias.size());
 		convBias.values = conv_bias;
 		convBias.count = size_bias;
 	}
@@ -891,7 +893,9 @@ nvinfer1::ILayer * layer_bottleneck_csp(
 	const int group_ ,
 	const float e_ )
 {
-	int c1 = dims2chw(input_->getDimensions())[0];
+	std::vector<int> chw=dims2chw(input_->getDimensions());
+	//int c1 = dims2chw(input_->getDimensions())[0];
+	int c1 = chw[0];
 	int c_ = int(c2_*0.5);
 	//cv1
 	auto out = layer_conv_bn_act(s_model_name_ +".cv1", map_wts_, input_, network_, c_, 1);
@@ -925,7 +929,8 @@ nvinfer1::ILayer * layer_spp(std::string s_model_name_,
 	const int c2_,
 	const std::vector<int> &vec_args_)
 {
-	int c1 = dims2chw(input_->getDimensions())[0];
+	std::vector<int> chw=dims2chw(input_->getDimensions());
+	int c1 = chw[0];//dims2chw(input_->getDimensions())[0];
 	int c_ = c1 / 2;
 	nvinfer1::ILayer * x = layer_conv_bn_act(s_model_name_ + ".cv1", map_wts_, input_, network_, c_, 1);
 	nvinfer1::ITensor** concatInputs
@@ -959,7 +964,8 @@ nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
 	nvinfer1::ITensor* input_, 
 	const int n_scale_)
 {
-	int c1 = dims2chw(input_->getDimensions())[0];
+	std::vector<int> chw=dims2chw(input_->getDimensions());
+	int c1 = chw[0];//dims2chw(input_->getDimensions())[0];
 	float *deval = new float[c1*n_scale_*n_scale_];
 	for (int i = 0; i < c1*n_scale_*n_scale_; i++)
 	{
@@ -1027,27 +1033,27 @@ nvinfer1::ILayer * layer_conv_bn_act(
 	nvinfer1::ILayer* bn = nullptr;
 	if (0)
 	{
-		std::vector<float> bn_wts = map_wts_[s_layer_name_ + ".bn.weight"];
+		std::vector<float> &bn_wts = map_wts_[s_layer_name_ + ".bn.weight"];
 		/*for (int i = 0; i < n_filters_; ++i)
 		{
 			bn_wts.push_back([i]);
 		}*/
-		std::vector<float> bn_bias = map_wts_[s_layer_name_ + ".bn.bias"];
+		std::vector<float> &bn_bias = map_wts_[s_layer_name_ + ".bn.bias"];
 		/*for (int i = 0; i < n_filters_; ++i)
 		{
 			bn_bias.push_back(vec_wts_[s_layer_name_ + ".bias.weight"][i]);
 		}*/
-		std::vector<float> bn_mean = map_wts_[s_layer_name_ + ".bn.running_mean"];
+		std::vector<float> &bn_mean = map_wts_[s_layer_name_ + ".bn.running_mean"];
 		/*for (int i = 0; i < n_filters_; ++i)
 		{
 			bn_mean.push_back(vec_wts_[s_layer_name_ + ".running_mean.weight"][i]);
 		}*/
-		std::vector<float> bn_var = map_wts_[s_layer_name_ + ".bn.running_var"];
+		std::vector<float> &bn_var = map_wts_[s_layer_name_ + ".bn.running_var"];
 		for (int i = 0; i < n_filters_; ++i)
 		{
 			bn_var[i] = sqrt(bn_var[i] + 1.0e-5);
 		}
-		float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked"][0];
+		//float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked"][0];
 
 		// create the weights
 		nvinfer1::Weights shift{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };

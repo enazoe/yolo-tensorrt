@@ -45,6 +45,6 @@ This is tensorrt c++ api implementation of yolov5.
 
     reference the readme.md
 
-    - win: open sln/sli.sln file using the visual studio 2015
+    - win: open sln/sln.sln file using the visual studio 2015
     - ubuntu: cmake
 

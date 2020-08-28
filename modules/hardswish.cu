@@ -48,7 +48,7 @@ namespace nvinfer1
 		{
 			output_[i] = input_[i];
 		}
-		else if (input_[i] < -3.0f)
+		else if (input_[i] <= -3.0f)
 		{
 			output_[i] = 0.0f;
 		}

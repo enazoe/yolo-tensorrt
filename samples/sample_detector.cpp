@@ -39,8 +39,8 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-2.0/yolov5s.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-2.0/yolov5s.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5x.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5x.weights";
 	config_v5.inference_precison = FP32;
 	//config_v5.n_max_batch = 2;
 

@@ -28,9 +28,18 @@ This is tensorrt c++ api implementation of yolov5.
     ```shell
     cp yolo-tensorrt/scripts/yaml2cfg.py yolov5/
     python yaml2cfg.py
+    mv yolov5/models/yolov5.cfg yolo-tensorrt/configs/yolov5-3.0
+    mv yolov5/weights/yolov5.weights yolo-tensorrt/configs/yolov5-3.0
     ```
     
     transformed models
+    
+    |    model     |                            .yaml                             |                             .pt                              |                             .cfg                             |                           .weights                           |
+    | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+    | yolov5s-v3.0 | [yolov5s.yaml](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5s.pt](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5s.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5s.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5m-v3.0 | [yolov5m.yaml](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5m.pt](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5m.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5m.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5l-v3.0 | [yolov5l.yaml](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5l.pt](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5l.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5l.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5x-v3.0 | [yolov5x.yaml](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5x.pt](https://github.com/ultralytics/yolov5/releases/tag/v3.0) | [yolov5x.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5x.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
     
     |    model     |                            .yaml                             |                             .pt                              |                             .cfg                             |                           .weights                           |
     | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -39,12 +48,10 @@ This is tensorrt c++ api implementation of yolov5.
     | yolov5l-v2.0 | [yolov5l.yaml](https://github.com/ultralytics/yolov5/releases/tag/v2.0) | [yolov5l.pt](https://github.com/ultralytics/yolov5/releases/tag/v2.0) | [yolov5l.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5l.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
     | yolov5x-v2.0 | [yolov5x.yaml](https://github.com/ultralytics/yolov5/releases/tag/v2.0) | [yolov5x.pt](https://github.com/ultralytics/yolov5/releases/tag/v2.0) | [yolov5x.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5x.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
     
-    __note:__ the performance of yolov5-v3.0 has some problem ,I will fix it soon.
-    
-- build
+- build and run
 
     reference the readme.md
 
-    - win: open sln/sln.sln file using the visual studio 2015
+    - win10: open sln/sln.sln file using the visual studio 2015
     - ubuntu: cmake
 

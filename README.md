@@ -12,7 +12,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 ![](./configs/yolo-trt.png)
 
 - [x] yolov5s , yolov5m , yolov5l , yolov5x [tutorial](yolov5_tutorial.md)
-  - [x] inequal size net input
+  - [x] inequal net input size
   - [x] batch inference
   - [x] support FP32,FP16,INT8
   - [ ] daynamic input size
@@ -72,14 +72,6 @@ cmake ..
 make
 ./yolo-trt
 ```
-- **jetson nano**  JetPack 4.2.2
-	
-	*note:*  set **_compute_53,code=sm_53_** at cmake file.
-
-- **jetson xavier nx**  JetPack 4.4
-	
-	*note:*  set **_compute_72,code=sm_72_** at cmake file.
-
 ## API
 
 ```c++

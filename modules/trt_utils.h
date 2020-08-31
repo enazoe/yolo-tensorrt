@@ -215,11 +215,11 @@ nvinfer1::ILayer * layer_conv_bn_act(
 	const int group_ =1,
 	const bool b_padding_ = true,
 	const bool b_bn_ = true,
-	const std::string s_act_ = "hardswish");
+	const std::string s_act_ = "leaky");
 
 nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
 	nvinfer1::INetworkDefinition* network_,
-	const std::string s_act_ = "hardswish");
+	const std::string s_act_ = "leaky");
 
 nvinfer1::ILayer * layer_bottleneck_csp(
 	std::string s_model_name_,

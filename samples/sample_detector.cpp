@@ -13,6 +13,7 @@ int main()
 	config_v3.file_model_weights = "../configs/yolov3.weights";
 	config_v3.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v3.inference_precison = FP32;
+	config_v3.n_max_batch = 1;
 
 	Config config_v3_tiny;
 	config_v3_tiny.net_type = YOLOV3_TINY;
@@ -27,6 +28,7 @@ int main()
 	config_v4.file_model_cfg = "../configs/yolov4.cfg";
 	config_v4.file_model_weights = "../configs/yolov4.weights";
 	config_v4.inference_precison = FP32;
+	config_v4.n_max_batch = 1;
 
 	Config config_v4_tiny;
 	config_v4_tiny.net_type = YOLOV4_TINY;
@@ -39,10 +41,9 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5x.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5x.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5m.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5m.weights";
 	config_v5.inference_precison = FP32;
-	//config_v5.n_max_batch = 2;
 
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);

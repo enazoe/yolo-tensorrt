@@ -1,6 +1,6 @@
 # Yolov5 Yolov4 Yolov3 TensorRT Implementation
 
-![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=_8L7nut5y6hS88NEoNkjUcL3lu7MzPKq&jump_from=webapi"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="yolo tensorrt部署交流" title="yolo tensorrt部署交流"></a>
 
 __news:__ yolov5 support
 

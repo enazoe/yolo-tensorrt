@@ -327,7 +327,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 				}
                 nvinfer1::ITensor** concatInputs
                     = reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * vec_index.size()));
-				for (int ind=0;ind<vec_index.size();++ind)
+                for (size_t ind = 0; ind < vec_index.size(); ++ind)
 				{
 					concatInputs[ind] = tensorOutputs[vec_index[ind]];
 				}
@@ -424,9 +424,9 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
         }
     }
 
-    if (weights.size() != weightPtr)
+    if (static_cast<int>(weights.size()) != weightPtr)
     {
-        std::cout << "Number of unused weights left : " << weights.size() - weightPtr << std::endl;
+        std::cout << "Number of unused weights left : " << static_cast<int>(weights.size()) - weightPtr << std::endl;
         assert(0);
     }
 
@@ -502,8 +502,8 @@ void parse_bottleneck_args(const std::string s_args_, int &n_out_ch_, bool &b_sh
 	std::string s_args = s_args_;
 	while (!s_args.empty())
 	{
-		int npos = s_args.find_first_of(',');
-		if (npos != -1)
+		auto npos = s_args.find_first_of(',');
+		if (npos != std::string::npos)
 		{
 			n_out_ch_ = std::stoi(trim(s_args.substr(0, npos)));
 			s_args.erase(0, npos + 1);
@@ -562,8 +562,8 @@ std::vector<std::string> parse_str_list(const std::string s_args_)
 	std::vector<std::string> vec_args;
 	while (!s_args.empty())
 	{
-		int npos = s_args.find_first_of(',');
-		if (npos != -1)
+		auto npos = s_args.find_first_of(',');
+		if (npos != std::string::npos)
 		{
 			std::string v =trimr( triml(trim(s_args.substr(0, npos)),"'"),"'");
 			vec_args.push_back(v);
@@ -585,7 +585,6 @@ void parse_upsample(const std::string s_args_, int &n_filters_)
 	size_t pos = 0;
 	std::string token;
 	std::string delimiter = ",";
-	bool w = 0;
 	while ((pos = s_args.find(delimiter)) != std::string::npos) 
 	{
 		token = s_args.substr(0, pos);
@@ -762,9 +761,9 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			nvinfer1::ITensor** concat_tensor
 				= reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * vec_from.size() ));
-			for (int i = 0; i < vec_from.size(); ++i)
+			for (size_t j = 0; j < vec_from.size(); ++j)
 			{
-				concat_tensor[i] = tensorOutputs[vec_from[i]];
+				concat_tensor[j] = tensorOutputs[vec_from[j]];
 			}
 			nvinfer1::IConcatenationLayer* concat
 				=m_Network->addConcatenation(concat_tensor, vec_from.size());
@@ -787,7 +786,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			std::vector<std::string> vec_args = parse_str_list(m_configBlocks[i]["args"]);
 			std::string s_model_name = "model." + std::to_string(i - 1);
-			for (int ind_from = 0; ind_from < vec_from.size(); ++ind_from)
+                        for (size_t ind_from = 0; ind_from < vec_from.size(); ++ind_from)
 			{
 				int n_filters = (5 + _n_classes) * 3;
 				int from = vec_from[ind_from];
@@ -818,7 +817,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				assert(yolo != nullptr);
 
 				yolo->setName(layerName.c_str());
-				std::string inputVol = dimsToString(tensorOutputs[from]->getDimensions());
+				inputVol = dimsToString(tensorOutputs[from]->getDimensions());
 				previous = yolo->getOutput(0);
 				assert(previous != nullptr);
 				previous->setName(layerName.c_str());
@@ -867,7 +866,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	int nbLayers = m_Network->getNbLayers();
 	int layersOnDLA = 0;
 	//   std::cout << "Total number of layers: " << nbLayers << std::endl;
-	for (uint32_t i = 0; i < nbLayers; i++)
+	for (int i = 0; i < nbLayers; i++)
 	{
 		nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
 		if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
@@ -1068,7 +1067,7 @@ void Yolo::parseConfigBlocks()
             outputTensor.numClasses = std::stoul(block.at("classes"));
             if (m_ClassNames.empty())
             {
-                for (int i=0;i< outputTensor.numClasses;++i)
+                for (uint32_t i=0;i< outputTensor.numClasses;++i)
                 {
                     m_ClassNames.push_back(std::to_string(i));
                 }
@@ -1126,8 +1125,8 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 			std::string anchorString = block.at("anchors");
 			while (!anchorString.empty())
 			{
-				int npos = anchorString.find_first_of(',');
-				if (npos != -1)
+				auto npos = anchorString.find_first_of(',');
+				if (npos != std::string::npos)
 				{
 					float anchor = std::stof(trim(anchorString.substr(0, npos)));
 					vec_anchors.push_back(anchor);
@@ -1149,8 +1148,8 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 			std::vector<int> vec_from{};
 			while (!from.empty())
 			{
-				int npos = from.find_first_of(",");
-				if (-1 != npos)
+				auto npos = from.find_first_of(",");
+				if (std::string::npos != npos)
 				{
 					vec_from.push_back(std::stoi(trim(from.substr(0, npos))));
 					from.erase(0, npos + 1);
@@ -1167,7 +1166,7 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 				TensorInfo outputTensor;
 				outputTensor.anchors = vec_anchors;
 				outputTensor.masks = std::vector<uint32_t>{3*i,3*i+1,3*i+2};
-				outputTensor.numBBoxes = outputTensor.masks.size();
+				outputTensor.numBBoxes = static_cast<uint32_t>(outputTensor.masks.size());
 				outputTensor.numClasses = _n_classes;
 				outputTensor.blobName = "yolo_" + std::to_string(i);
 				outputTensor.grid_h = (m_InputH / 32) * pow(2 ,2-i);
@@ -1181,9 +1180,9 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 
 				if (m_ClassNames.empty())
 				{
-					for (int i = 0; i < outputTensor.numClasses; ++i)
+					for (uint32_t j = 0; j < outputTensor.numClasses; ++j)
 					{
-						m_ClassNames.push_back(std::to_string(i));
+						m_ClassNames.push_back(std::to_string(j));
 					}
 				}
 			}

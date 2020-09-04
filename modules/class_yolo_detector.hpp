@@ -102,7 +102,7 @@ private:
 		_yolo_info.wtsFilePath = _config.file_model_weights;
 		_yolo_info.precision = _vec_precision[_config.inference_precison];
 		_yolo_info.deviceType = "kGPU";
-		int npos = _yolo_info.wtsFilePath.find(".weights");
+		auto npos = _yolo_info.wtsFilePath.find(".weights");
 		assert(npos != std::string::npos
 			&& "wts file file not recognised. File needs to be of '.weights' format");
 		std::string dataPath = _yolo_info.wtsFilePath.substr(0, npos);

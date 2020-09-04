@@ -344,7 +344,7 @@ nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFacto
 
     // calculating model size
     trtModelStream.seekg(0, std::ios::end);
-    const int modelSize = trtModelStream.tellg();
+    const auto modelSize = trtModelStream.tellg();
     trtModelStream.seekg(0, std::ios::beg);
     void* modelMem = malloc(modelSize);
     trtModelStream.read((char*) modelMem, modelSize);
@@ -606,7 +606,7 @@ nvinfer1::ILayer* net_conv_bn_mish(int layerIdx,
 	for (int i = 0; i < filters; ++i)
 	{
 		// 1e-05 for numerical stability
-		bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+		bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5f));
 		weightPtr++;
 	}
 	// load Conv layer weights (GKCRS)
@@ -692,8 +692,8 @@ std::vector<int> parse_int_list(const std::string s_args_)
 	std::vector<int> vec_args;
 	while (!s_args.empty())
 	{
-		int npos = s_args.find_first_of(',');
-		if (npos != -1)
+		auto npos = s_args.find_first_of(',');
+		if (npos != std::string::npos)
 		{
 			int v = std::stoi(trim(s_args.substr(0, npos)));
 			vec_args.push_back(v);
@@ -775,7 +775,7 @@ nvinfer1::ILayer * layer_bn(const std::string s_layer_name_,
 	assert(bn_var.size() == n_filters_);
 	for (int i = 0; i < n_filters_; ++i)
 	{
-		bn_var[i] = sqrt(bn_var[i] + 1.0e-5);
+		bn_var[i] = sqrt(bn_var[i] + 1.0e-5f);
 	}
 	//float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked.weight"][0];
 	// create the weights
@@ -825,6 +825,7 @@ nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
 		assert(act != nullptr);
 		return act;
 	}
+	return nullptr;
 }
 
 nvinfer1::ILayer * layer_conv(const std::string s_layer_name_,
@@ -1193,7 +1194,7 @@ nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx,
     for (int i = 0; i < filters; ++i)
     {
         // 1e-05 for numerical stability
-        bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5));
+        bnRunningVar.push_back(sqrt(weights[weightPtr] + 1.0e-5f));
         weightPtr++;
     }
     // load Conv layer weights (GKCRS)
@@ -1259,7 +1260,7 @@ nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx,
     /***** ACTIVATION LAYER *****/
     /****************************/
 	auto leaky = network->addActivation(*bn->getOutput(0),nvinfer1::ActivationType::kLEAKY_RELU);
-	leaky->setAlpha(0.1);
+	leaky->setAlpha(0.1f);
 	/*nvinfer1::IPlugin* leakyRELU = nvinfer1::plugin::createPReLUPlugin(0.1);
 	assert(leakyRELU != nullptr);
 	nvinfer1::ITensor* bnOutput = bn->getOutput(0);
@@ -1320,7 +1321,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
         {
             for (int j = 0; j < w; ++j, ++idx)
             {
-                preWt[idx] = (i == j) ? 1.0 : 0.0;
+                preWt[idx] = (i == j) ? 1.0f : 0.0f;
             }
         }
     }
@@ -1349,7 +1350,7 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     {
         for (int j = 0; j < stride * w; ++j, ++idx)
         {
-            postWt[idx] = (j / stride == i) ? 1.0 : 0.0;
+            postWt[idx] = (j / stride == i) ? 1.0f : 0.0f;
         }
     }
     postMul.values = postWt;

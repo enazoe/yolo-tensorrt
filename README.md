@@ -1,6 +1,6 @@
 # Yolov5 Yolov4 Yolov3 TensorRT Implementation
 
-![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=_8L7nut5y6hS88NEoNkjUcL3lu7MzPKq&jump_from=webapi"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="yolo tensorrt部署交流" title="yolo tensorrt部署交流"></a>
+![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 __news:__ yolov5 support
 
@@ -120,3 +120,9 @@ private:
 - https://github.com/wang-xinyu/tensorrtx/tree/master/yolov4
 - https://github.com/mj8ac/trt-yolo-app_win64
 - https://github.com/NVIDIA-AI-IOT/deepstream_reference_apps
+
+## Contact
+
+qq group id: 1151955802
+
+![](.\configs\qq_group.png)

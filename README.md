@@ -125,4 +125,4 @@ private:
 
 qq group id: 1151955802
 
-![](.\configs\qq_group.png)
+<img src="./configs/qq_group.png" style="zoom:50%;" />

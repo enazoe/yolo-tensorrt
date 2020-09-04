@@ -1,28 +1,3 @@
-/**
-MIT License
-
-Copyright (c) 2018 NVIDIA CORPORATION. All rights reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*
-*/
-
 #include "yolo.h"
 #include <memory>
 #include <vector>
@@ -220,7 +195,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
     std::vector<nvinfer1::ITensor*> tensorOutputs;
     uint32_t outputTensorCount = 0;
 
-	if ("yolov3" == m_NetworkType || "yolov3-tiny" == m_NetworkType)
+	if (/*"yolov3" == m_NetworkType || */"yolov3-tiny" == m_NetworkType)
 	{
 		// Set the output dimensions formula for pooling layers
 		assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
@@ -303,19 +278,24 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
         else if (m_configBlocks.at(i).at("type") == "yolo")
         {
             nvinfer1::Dims prevTensorDims = previous->getDimensions();
-            assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
+           // assert(prevTensorDims.d[1] == prevTensorDims.d[2]);
             TensorInfo& curYoloTensor = m_OutputTensors.at(outputTensorCount);
             curYoloTensor.gridSize = prevTensorDims.d[1];
+            curYoloTensor.grid_h = prevTensorDims.d[1];
+            curYoloTensor.grid_w = prevTensorDims.d[2];
             curYoloTensor.stride = m_InputW / curYoloTensor.gridSize;
-            m_OutputTensors.at(outputTensorCount).volume = curYoloTensor.gridSize
-                * curYoloTensor.gridSize
+            curYoloTensor.stride_h = m_InputH / curYoloTensor.grid_h;
+            curYoloTensor.stride_w = m_InputW / curYoloTensor.grid_w;
+            m_OutputTensors.at(outputTensorCount).volume = curYoloTensor.grid_h
+                * curYoloTensor.grid_w
                 * (curYoloTensor.numBBoxes * (5 + curYoloTensor.numClasses));
             std::string layerName = "yolo_" + std::to_string(outputTensorCount);
             curYoloTensor.blobName = layerName;
             nvinfer1::IPlugin* yoloPlugin
                 = new YoloLayerV3(m_OutputTensors.at(outputTensorCount).numBBoxes,
                                   m_OutputTensors.at(outputTensorCount).numClasses,
-                                  m_OutputTensors.at(outputTensorCount).gridSize);
+                                  m_OutputTensors.at(outputTensorCount).grid_h,
+                                  m_OutputTensors.at(outputTensorCount).grid_w);
             assert(yoloPlugin != nullptr);
             nvinfer1::IPluginLayer* yolo = m_Network->addPlugin(&previous, 1, *yoloPlugin);
             assert(yolo != nullptr);
@@ -939,7 +919,7 @@ void Yolo::load_weights_v5(const std::string s_weights_path_,
 }
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
-	Timer timer;
+	//Timer timer;
     assert(batchSize <= m_BatchSize && "Image batch size exceeds TRT engines batch size");
     NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
                                   batchSize * m_InputSize * sizeof(float), cudaMemcpyHostToDevice,
@@ -953,7 +933,7 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
                                       cudaMemcpyDeviceToHost, m_CudaStream));
     }
     cudaStreamSynchronize(m_CudaStream);
-	timer.out("inference");
+//	timer.out("inference");
 }
 
 std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
@@ -1021,7 +1001,7 @@ void Yolo::parseConfigBlocks()
             m_InputH = std::stoul(block.at("height"));
             m_InputW = std::stoul(block.at("width"));
             m_InputC = std::stoul(block.at("channels"));
-            assert(m_InputW == m_InputH);
+         //   assert(m_InputW == m_InputH);
             m_InputSize = m_InputC * m_InputH * m_InputW;
         }
         else if ((block.at("type") == "region") || (block.at("type") == "yolo"))
@@ -1096,14 +1076,18 @@ void Yolo::parseConfigBlocks()
 			static int ind = 0;
 			outputTensor.blobName = "yolo_" + std::to_string(ind);
 			outputTensor.gridSize = (m_InputH / 32) * pow(2, ind);
+			outputTensor.grid_h = (m_InputH / 32) * pow(2, ind);
+			outputTensor.grid_w = (m_InputW / 32) * pow(2, ind);
 			if (m_NetworkType == "yolov4")//pan
 			{
 				outputTensor.gridSize = (m_InputH / 32) * pow(2, 2-ind);
+				outputTensor.grid_h = (m_InputH / 32) * pow(2, 2-ind);
+				outputTensor.grid_w = (m_InputW / 32) * pow(2, 2-ind);
 			}
 			outputTensor.stride = m_InputH / outputTensor.gridSize;
-			outputTensor.stride_h = m_InputH / outputTensor.gridSize;
-			outputTensor.stride_w = m_InputW / outputTensor.gridSize;
-			outputTensor.volume = outputTensor.gridSize * outputTensor.gridSize
+			outputTensor.stride_h = m_InputH / outputTensor.grid_h;
+			outputTensor.stride_w = m_InputW / outputTensor.grid_w;
+			outputTensor.volume = outputTensor.grid_h* outputTensor.grid_w
 				*(outputTensor.numBBoxes*(5 + outputTensor.numClasses));
             m_OutputTensors.push_back(outputTensor);
 			ind++;

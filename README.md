@@ -12,12 +12,15 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 ![](./configs/yolo-trt.png)
 
 - [x] yolov5s , yolov5m , yolov5l , yolov5x [tutorial](yolov5_tutorial.md)
-  - [x] inequal net input size
-  - [x] batch inference
-  - [x] support FP32,FP16,INT8
-  - [ ] daynamic input size
 - [x] yolov4 , yolov4-tiny
 - [x] yolov3 , yolov3-tiny
+
+## Features
+
+- [x] inequal net width and height
+- [x] batch inference
+- [x] support FP32,FP16,INT8
+- [ ] daynamic input size
 
 
 ## PLATFORM & PERFORMENCE

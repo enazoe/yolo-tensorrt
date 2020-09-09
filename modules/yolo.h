@@ -237,6 +237,8 @@ private:
 private:
 	Timer _timer;
 	void load_weights_v5(const std::string s_weights_path_, std::map<std::string, std::vector<float>> &vec_wts_);
+
+	int _n_yolo_ind = 0;
 };
 
 #endif // _YOLO_H_

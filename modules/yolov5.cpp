@@ -2,10 +2,10 @@
 #include "yolov5.h"
 
 
-YoloV5::YoloV5(const uint32_t batch_size_,
+YoloV5::YoloV5(
 	const NetworkInfo &network_info_,
 	const InferParams &infer_params_) :
-	Yolo(batch_size_, network_info_, infer_params_) {}
+	Yolo( network_info_, infer_params_) {}
 
 
 

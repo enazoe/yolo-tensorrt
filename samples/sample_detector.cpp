@@ -13,11 +13,10 @@ int main()
 	config_v3.file_model_weights = "../configs/yolov3.weights";
 	config_v3.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v3.inference_precison = FP32;
-	config_v3.n_max_batch = 1;
 
 	Config config_v3_tiny;
 	config_v3_tiny.net_type = YOLOV3_TINY;
-	config_v3_tiny.detect_thresh = 0.5;
+	config_v3_tiny.detect_thresh = 0.7;
 	config_v3_tiny.file_model_cfg = "../configs/yolov3-tiny.cfg";
 	config_v3_tiny.file_model_weights = "../configs/yolov3-tiny.weights";
 	config_v3_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
@@ -28,7 +27,6 @@ int main()
 	config_v4.file_model_cfg = "../configs/yolov4.cfg";
 	config_v4.file_model_weights = "../configs/yolov4.weights";
 	config_v4.inference_precison = FP32;
-	config_v4.n_max_batch = 1;
 
 	Config config_v4_tiny;
 	config_v4_tiny.net_type = YOLOV4_TINY;
@@ -41,14 +39,14 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5m.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5m.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5s.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5s.weights";
 	config_v5.inference_precison = FP32;
 
+	std::unique_ptr<Detector> detector(new Detector());
+	detector->init(config_v4);
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
-	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v5);
 	std::vector<BatchResult> batch_res;
 	Timer timer;
 	for (;;)
@@ -58,7 +56,7 @@ int main()
 		cv::Mat temp0 = image0.clone();
 		cv::Mat temp1 = image1.clone();
 		batch_img.push_back(temp0);
-		batch_img.push_back(temp1);
+//		batch_img.push_back(temp1);
 
 		//detect
 		timer.reset();

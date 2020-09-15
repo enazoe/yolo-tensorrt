@@ -9,8 +9,7 @@
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(DetectPluginCreator);
 
-Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const InferParams& inferParams) :
-	m_EnginePath(networkInfo.enginePath),
+Yolo::Yolo( const NetworkInfo& networkInfo, const InferParams& inferParams) :
 	m_NetworkType(networkInfo.networkType),
 	m_ConfigFilePath(networkInfo.configFilePath),
 	m_WtsFilePath(networkInfo.wtsFilePath),
@@ -30,7 +29,6 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
 	m_PrintPerfInfo(inferParams.printPerfInfo),
 	m_PrintPredictions(inferParams.printPredictionInfo),
 	m_Logger(Logger()),
-	m_BatchSize(batchSize),
 	m_Network(nullptr),
 	m_Builder(nullptr),
 	m_ModelStream(nullptr),
@@ -53,7 +51,7 @@ Yolo::Yolo(const uint32_t batchSize, const NetworkInfo& networkInfo, const Infer
 	{
 		parseConfigBlocks();
 	}
-
+	m_EnginePath = networkInfo.data_path + "-" + m_Precision + "-batch" + std::to_string(m_BatchSize) + ".engine";
 	if (m_Precision == "kFLOAT")
 	{
 		if ("yolov5" == m_NetworkType)
@@ -1001,6 +999,7 @@ void Yolo::parseConfigBlocks()
             m_InputH = std::stoul(block.at("height"));
             m_InputW = std::stoul(block.at("width"));
             m_InputC = std::stoul(block.at("channels"));
+			m_BatchSize = std::stoi(trim(block.at("batch")));
          //   assert(m_InputW == m_InputH);
             m_InputSize = m_InputC * m_InputH * m_InputW;
         }
@@ -1118,6 +1117,7 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 			m_InputH = std::stoul(trim(block.at("height")));
 			m_InputW = std::stoul(trim(block.at("width")));
 			m_InputC = std::stoul(trim(block.at("channels")));
+			m_BatchSize = std::stoi(trim(block.at("batch")));
 			_f_depth_multiple = std::stof(trim(block.at("depth_multiple")));
 			_f_width_multiple = std::stof(trim(block.at("width_multiple")));
 			_n_classes = std::stoi(trim(block.at("nc")));

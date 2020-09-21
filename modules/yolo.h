@@ -148,7 +148,7 @@ protected:
     const bool m_PrintPredictions;
     // TRT specific members
 	//Logger glogger;
-    uint32_t m_BatchSize;
+    uint32_t m_BatchSize = 1;
     nvinfer1::INetworkDefinition* m_Network;
     nvinfer1::IBuilder* m_Builder ;
     nvinfer1::IHostMemory* m_ModelStream;

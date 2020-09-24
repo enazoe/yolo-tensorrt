@@ -671,7 +671,8 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			int filters = args[0];
 			int kernel_size = args[1];
 			filters = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
-			nvinfer1::ILayer* out = layer_focus("model." + std::to_string(i - 1),
+			nvinfer1::ILayer* out = layer_focus(trtWeights,
+				"model." + std::to_string(i - 1),
 				model_wts,
 				previous,
 				filters,
@@ -693,7 +694,8 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			int kernel_size = args[1];
 			int stride = args[2];
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
-			nvinfer1::ILayer * out = layer_conv_bn_act("model."+std::to_string(i-1), model_wts, previous, m_Network, n_out_channel, kernel_size, stride);
+			nvinfer1::ILayer * out = layer_conv_bn_act(trtWeights,
+				"model."+std::to_string(i-1), model_wts, previous, m_Network, n_out_channel, kernel_size, stride);
 			previous = out->getOutput(0);
 			assert(previous != nullptr);
 			channels = getNumChannels(previous);
@@ -711,7 +713,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
 			int n_depth = (number > 1) ? (std::max(int(round(_f_depth_multiple *number)), 1)) : number;
 			std::string s_model_name = "model." + std::to_string(i- 1);
-			auto out = layer_bottleneck_csp(s_model_name, model_wts, m_Network, previous, n_out_channel, n_depth, short_cut);
+			auto out = layer_bottleneck_csp(trtWeights,s_model_name, model_wts, m_Network, previous, n_out_channel, n_depth, short_cut);
 			previous = out->getOutput(0);
 			assert(previous != nullptr);
 			channels = getNumChannels(previous);
@@ -727,7 +729,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			parse_spp_args(m_configBlocks[i]["args"], filters, vec_k);
 			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
 			std::string s_model_name = "model." + std::to_string(i- 1);
-			auto out = layer_spp(s_model_name, model_wts, m_Network, previous, n_out_channel, vec_k);
+			auto out = layer_spp(trtWeights, s_model_name, model_wts, m_Network, previous, n_out_channel, vec_k);
 			previous = out->getOutput(0);
 			assert(previous != nullptr);
 			channels = getNumChannels(previous);
@@ -789,7 +791,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			{
 				int n_filters = (5 + _n_classes) * 3;
 				int from = vec_from[ind_from];
-				auto conv = layer_conv(s_model_name+".m."+std::to_string(ind_from),
+				auto conv = layer_conv(trtWeights, s_model_name+".m."+std::to_string(ind_from),
 					model_wts, tensorOutputs[from], m_Network, n_filters,1,1,true);
 
 				auto tensor_conv = conv->getOutput(0);

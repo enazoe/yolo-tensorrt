@@ -65,7 +65,7 @@ class Logger : public nvinfer1::ILogger
 public:
 	Logger(Severity severity = Severity::kWARNING)
 	{
-
+		severity = severity;
 	}
 
 	~Logger()

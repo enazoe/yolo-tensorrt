@@ -104,10 +104,10 @@ BBox convertBBoxNetRes(const float& bx, const float& by, const float& bw, const 
     b.y1 = y - bh / 2;
     b.y2 = y + bh / 2;
 
-    b.x1 = clamp(b.x1, 0, netW);
-    b.x2 = clamp(b.x2, 0, netW);
-    b.y1 = clamp(b.y1, 0, netH);
-    b.y2 = clamp(b.y2, 0, netH);
+    b.x1 = clamp(b.x1, 0.f, static_cast<float>(netW));
+    b.x2 = clamp(b.x2, 0.f, static_cast<float>(netW));
+    b.y1 = clamp(b.y1, 0.f, static_cast<float>(netH));
+    b.y2 = clamp(b.y2, 0.f, static_cast<float>(netH));
 
     return b;
 }
@@ -959,7 +959,7 @@ nvinfer1::ILayer * layer_spp(std::vector<nvinfer1::Weights> &trtWeights_,
 		concatInputs[ind + 1] = pool->getOutput(0);
 	}
 	nvinfer1::IConcatenationLayer* concat
-		= network_->addConcatenation(concatInputs, (vec_args_.size()+1));
+		= network_->addConcatenation(concatInputs, static_cast<int>(vec_args_.size()+1));
 	//concat->setAxis(0);
 	assert(concat != nullptr);
 	nvinfer1::ILayer *cv2 = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv2", map_wts_, concat->getOutput(0), network_, c2_, 1);

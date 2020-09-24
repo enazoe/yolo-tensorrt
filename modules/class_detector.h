@@ -38,7 +38,7 @@ struct Config
 
 	std::string file_model_weights				= "configs/yolov3.weights";
 
-	float detect_thresh							= 0.9;
+	float detect_thresh							= 0.9f;
 
 	ModelType	net_type						= YOLOV3;
 
@@ -61,12 +61,14 @@ public:
 
 	void detect(const std::vector<cv::Mat> &mat_image, std::vector<BatchResult> &vec_batch_result);
 
+	cv::Size get_input_size() const;
+
 private:
 	
 	Detector(const Detector &);
 	const Detector &operator =(const Detector &);
 	class Impl;
-	Impl *_impl;
+	Impl *_impl = nullptr;
 };
 
 #endif // !CLASS_QH_DETECTOR_H_

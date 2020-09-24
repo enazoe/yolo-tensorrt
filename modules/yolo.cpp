@@ -767,7 +767,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 				concat_tensor[j] = tensorOutputs[vec_from[j]];
 			}
 			nvinfer1::IConcatenationLayer* concat
-				=m_Network->addConcatenation(concat_tensor, vec_from.size());
+				=m_Network->addConcatenation(concat_tensor, static_cast<int>(vec_from.size()));
 			concat->setAxis(n_dimension-1);
 			assert(concat != nullptr);
 			previous = concat->getOutput(0);

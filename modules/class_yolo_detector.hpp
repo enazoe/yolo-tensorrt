@@ -52,11 +52,11 @@ public:
 			vec_ds_images.emplace_back(img, _p_net->getInputH(), _p_net->getInputW());
 		}
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
-		_p_net->doInference(trtInput.data, vec_ds_images.size());
-		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
+		_p_net->doInference(trtInput.data, static_cast<uint32_t>(vec_ds_images.size()));
+		for (size_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
-			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
+			auto binfo = _p_net->decodeDetections(static_cast<int>(i), curImage.getImageHeight(), curImage.getImageWidth());
 			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
 				binfo,
 				_p_net->getNumClasses(),
@@ -80,6 +80,11 @@ public:
 			}
 			vec_batch_result[i] = vec_result;
 		}
+	}
+
+	cv::Size get_input_size() const
+	{
+		return cv::Size(_p_net->getInputH(), _p_net->getInputW());
 	}
 
 private:

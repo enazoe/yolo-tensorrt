@@ -34,3 +34,8 @@ void Detector::detect(const std::vector<cv::Mat> &mat_image, std::vector<BatchRe
 {
 	_impl->_detector.detect(mat_image, vec_batch_result);
 }
+
+cv::Size Detector::get_input_size() const
+{
+	return _impl->_detector.get_input_size();
+}

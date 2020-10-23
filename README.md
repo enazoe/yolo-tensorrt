@@ -94,7 +94,6 @@ struct Config
 
 	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
 
-	int n_max_batch = 4;	
 };
 
 class API Detector

@@ -787,7 +787,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			}
 			std::vector<std::string> vec_args = parse_str_list(m_configBlocks[i]["args"]);
 			std::string s_model_name = "model." + std::to_string(i - 1);
-                        for (size_t ind_from = 0; ind_from < vec_from.size(); ++ind_from)
+            for (size_t ind_from = 0; ind_from < vec_from.size(); ++ind_from)
 			{
 				int n_filters = (5 + _n_classes) * 3;
 				int from = vec_from[ind_from];

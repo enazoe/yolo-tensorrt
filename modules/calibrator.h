@@ -29,7 +29,7 @@ SOFTWARE.
 #include "ds_image.h"
 #include "trt_utils.h"
 
-class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator
+class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2
 {
 public:
     Int8EntropyCalibrator(const uint32_t& batchSize, const std::string& calibImages,

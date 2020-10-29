@@ -58,35 +58,32 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 		assert(0);
 	}
 
-//	m_OrigImage.copyTo(m_MarkedImage);
 	m_Height = m_OrigImage.rows;
 	m_Width = m_OrigImage.cols;
 
-	//// resize the DsImage with scale
-	//float dim = std::max(m_Height, m_Width);
-	//int resizeH = ((m_Height / dim) * inputH);
-	//int resizeW = ((m_Width / dim) * inputW);
-	//m_ScalingFactor = static_cast<float>(resizeH) / static_cast<float>(m_Height);
+	// resize the DsImage with scale
+	float dim = std::max(m_Height, m_Width);
+	int resizeH = ((m_Height / dim) * inputH);
+	int resizeW = ((m_Width / dim) * inputW);
+	m_ScalingFactor = static_cast<float>(resizeH) / static_cast<float>(m_Height);
 
-	//// Additional checks for images with non even dims
-	//if ((inputW - resizeW) % 2) resizeW--;
-	//if ((inputH - resizeH) % 2) resizeH--;
-	//assert((inputW - resizeW) % 2 == 0);
-	//assert((inputH - resizeH) % 2 == 0);
+	// Additional checks for images with non even dims
+	if ((inputW - resizeW) % 2) resizeW--;
+	if ((inputH - resizeH) % 2) resizeH--;
+	assert((inputW - resizeW) % 2 == 0);
+	assert((inputH - resizeH) % 2 == 0);
 
-	//m_XOffset = (inputW - resizeW) / 2;
-	//m_YOffset = (inputH - resizeH) / 2;
+	m_XOffset = (inputW - resizeW) / 2;
+	m_YOffset = (inputH - resizeH) / 2;
 
-	//assert(2 * m_XOffset + resizeW == inputW);
-	//assert(2 * m_YOffset + resizeH == inputH);
+	assert(2 * m_XOffset + resizeW == inputW);
+	assert(2 * m_YOffset + resizeH == inputH);
 
 	// resizing
 	cv::resize(mat_image_, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_LINEAR);
-	// letterboxing
-	/*cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
-	m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));*/
-	// converting to RGB
-	//cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
+		m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
+    cv::cvtColor(m_LetterboxImage, m_LetterboxImage,cv::COLOR_BGR2RGB);
 }
 DsImage::DsImage(const std::string& path, const int& inputH, const int& inputW) :
     m_Height(0),
@@ -137,8 +134,8 @@ DsImage::DsImage(const std::string& path, const int& inputH, const int& inputW) 
     // resizing
     cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_CUBIC);
     // letterboxing
-	/*cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
-					   m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));*/
+	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
+					   m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
     // converting to RGB
     cv::cvtColor(m_LetterboxImage, m_LetterboxImage,cv::COLOR_BGR2RGB);
 }

@@ -113,29 +113,21 @@ BBox convertBBoxNetRes(const float& bx, const float& by, const float& bw, const 
 }
 
 void convertBBoxImgRes(const float scalingFactor,
-	//const float& xOffset,
-//	const float& yOffset,
-	const uint32_t &input_w_,
-	const uint32_t &input_h_,
-	const uint32_t &image_w_,
-	const uint32_t &image_h_,
-                       BBox& bbox)
+	const float& xOffset,
+	const float& yOffset,
+    BBox& bbox)
 {
     //// Undo Letterbox
-    //bbox.x1 -= xOffset;
-    //bbox.x2 -= xOffset;
-    //bbox.y1 -= yOffset;
-    //bbox.y2 -= yOffset;
+    bbox.x1 -= xOffset;
+    bbox.x2 -= xOffset;
+    bbox.y1 -= yOffset;
+    bbox.y2 -= yOffset;
 
     //// Restore to input resolution
-    //bbox.x1 /= scalingFactor;
-    //bbox.x2 /= scalingFactor;
-    //bbox.y1 /= scalingFactor;
-    //bbox.y2 /= scalingFactor;
-	bbox.x1 = ((float)bbox.x1 / (float)input_w_)*(float)image_w_;
-	bbox.y1 = ((float)bbox.y1 / (float)input_h_)*(float)image_h_;
-	bbox.x2 = ((float)bbox.x2 / (float)input_w_)*(float)image_w_;
-	bbox.y2 = ((float)bbox.y2 / (float)input_h_)*(float)image_h_;
+    bbox.x1 /= scalingFactor;
+    bbox.x2 /= scalingFactor;
+    bbox.y1 /= scalingFactor;
+    bbox.y2 /= scalingFactor;
 }
 
 void printPredictions(const BBoxInfo& b, const std::string& className)

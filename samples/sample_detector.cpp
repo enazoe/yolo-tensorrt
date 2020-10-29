@@ -12,7 +12,8 @@ int main()
 	config_v3.file_model_cfg = "../configs/yolov3.cfg";
 	config_v3.file_model_weights = "../configs/yolov3.weights";
 	config_v3.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v3.inference_precison = FP32;
+	config_v3.inference_precison =FP32;
+	config_v3.detect_thresh = 0.5;
 
 	Config config_v3_tiny;
 	config_v3_tiny.net_type = YOLOV3_TINY;
@@ -26,7 +27,9 @@ int main()
 	config_v4.net_type = YOLOV4;
 	config_v4.file_model_cfg = "../configs/yolov4.cfg";
 	config_v4.file_model_weights = "../configs/yolov4.weights";
-	config_v4.inference_precison = FP32;
+	config_v4.calibration_image_list_file_txt = "../configs/calibration_images.txt";
+	config_v4.inference_precison =INT8;
+	config_v4.detect_thresh = 0.5;
 
 	Config config_v4_tiny;
 	config_v4_tiny.net_type = YOLOV4_TINY;
@@ -56,7 +59,7 @@ int main()
 		cv::Mat temp0 = image0.clone();
 		cv::Mat temp1 = image1.clone();
 		batch_img.push_back(temp0);
-//		batch_img.push_back(temp1);
+		//batch_img.push_back(temp1);
 
 		//detect
 		timer.reset();

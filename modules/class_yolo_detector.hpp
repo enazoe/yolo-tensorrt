@@ -57,12 +57,12 @@ public:
 		{
 			auto curImage = vec_ds_images.at(i);
 			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
-			Timer timer;
+	//		Timer timer;
 			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
 				binfo,
 				_p_net->getNumClasses(),
 				_vec_net_type[_config.net_type]);
-			timer.out("nms");
+	//		timer.out("nms");
 			if (0 == remaining.size())
 			{
 				continue;

@@ -183,6 +183,23 @@ protected:
         binfo.push_back(bbi);
     }
 
+	void calcuate_letterbox_message(const int m_InputH, const int m_InputW,
+		const int imageH, const int imageW,
+		float &sh,float &sw,
+		int &xOffset,int &yOffset)
+	{
+		float dim = std::max(imageW, imageH);
+		int resizeH = ((imageH / dim) * m_InputH);
+		int resizeW = ((imageW / dim) * m_InputW);
+		sh = static_cast<float>(resizeH) / static_cast<float>(imageH);
+		sw = static_cast<float>(resizeW) / static_cast<float>(imageW);
+		if ((m_InputW - resizeW) % 2) resizeW--;
+		if ((m_InputH - resizeH) % 2) resizeH--;
+		assert((m_InputW - resizeW) % 2 == 0);
+		assert((m_InputH - resizeH) % 2 == 0);
+		xOffset = (m_InputW - resizeW) / 2;
+		 yOffset = (m_InputH - resizeH) / 2;
+	}
 	BBox convert_bbox_res(const float& bx, const float& by, const float& bw, const float& bh,
 		const uint32_t& stride_h_, const uint32_t& stride_w_, const uint32_t& netW, const uint32_t& netH)
 	{
@@ -204,8 +221,27 @@ protected:
 
 		return b;
 	}
+
+	inline void cvt_box(const float sh,
+		const float sw,
+		const float xOffset,
+		const float yOffset,
+		BBox& bbox)
+	{
+		//// Undo Letterbox
+		bbox.x1 -= xOffset;
+		bbox.x2 -= xOffset;
+		bbox.y1 -= yOffset;
+		bbox.y2 -= yOffset;
+		//// Restore to input resolution
+		bbox.x1 /= sw;
+		bbox.x2 /= sw;
+		bbox.y1 /= sh;
+		bbox.y2 /= sh;
+	}
+
 	inline void add_bbox_proposal(const float bx, const float by, const float bw, const float bh,
-		const uint32_t stride_h_, const uint32_t stride_w_,const float scale,const float xoffset_,const float yoffset, const int maxIndex, const float maxProb,
+		const uint32_t stride_h_, const uint32_t stride_w_,const float scaleH, const float scaleW, const float xoffset_,const float yoffset, const int maxIndex, const float maxProb,
 		const uint32_t 	image_w, const uint32_t image_h,
 		std::vector<BBoxInfo>& binfo)
 	{
@@ -215,7 +251,7 @@ protected:
 		{
 			return;
 		}
-		convertBBoxImgRes(scale,xoffset_,yoffset, bbi.box);
+		cvt_box(scaleH,scaleW,xoffset_,yoffset, bbi.box);
 		bbi.label = maxIndex;
 		bbi.prob = maxProb;
 		bbi.classId = getClassId(maxIndex);

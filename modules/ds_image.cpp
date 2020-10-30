@@ -58,6 +58,7 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 		assert(0);
 	}
 
+	m_OrigImage.copyTo(m_MarkedImage);
 	m_Height = m_OrigImage.rows;
 	m_Width = m_OrigImage.cols;
 
@@ -66,6 +67,7 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 	int resizeH = ((m_Height / dim) * inputH);
 	int resizeW = ((m_Width / dim) * inputW);
 	m_ScalingFactor = static_cast<float>(resizeH) / static_cast<float>(m_Height);
+	float	m_ScalingFactorw = static_cast<float>(resizeW) / static_cast<float>(m_Width);
 
 	// Additional checks for images with non even dims
 	if ((inputW - resizeW) % 2) resizeW--;
@@ -80,10 +82,13 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 	assert(2 * m_YOffset + resizeH == inputH);
 
 	// resizing
-	cv::resize(mat_image_, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_LINEAR);
+	cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0, cv::INTER_CUBIC);
+	// letterboxing
 	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
 		m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
-    cv::cvtColor(m_LetterboxImage, m_LetterboxImage,cv::COLOR_BGR2RGB);
+	cv::imwrite("letter.jpg", m_LetterboxImage);
+	// converting to RGB
+	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 }
 DsImage::DsImage(const std::string& path, const int& inputH, const int& inputW) :
     m_Height(0),
@@ -132,7 +137,7 @@ DsImage::DsImage(const std::string& path, const int& inputH, const int& inputW) 
     assert(2 * m_YOffset + resizeH == inputH);
 
     // resizing
-    cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_CUBIC);
+    cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0, cv::INTER_CUBIC);
     // letterboxing
 	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
 					   m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));

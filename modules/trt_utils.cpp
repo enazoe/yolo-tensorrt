@@ -113,21 +113,23 @@ BBox convertBBoxNetRes(const float& bx, const float& by, const float& bw, const 
 }
 
 void convertBBoxImgRes(const float scalingFactor,
-	const float& xOffset,
-	const float& yOffset,
+	const float xOffset,
+	const float yOffset,
     BBox& bbox)
 {
-    //// Undo Letterbox
+	    //// Undo Letterbox
     bbox.x1 -= xOffset;
     bbox.x2 -= xOffset;
     bbox.y1 -= yOffset;
     bbox.y2 -= yOffset;
+//// Restore to input resolution
+	bbox.x1 /= scalingFactor;
+	bbox.x2 /= scalingFactor;
+	bbox.y1 /= scalingFactor;
+	bbox.y2 /= scalingFactor;
+	std::cout << "convertBBoxImgRes" << std::endl;
 
-    //// Restore to input resolution
-    bbox.x1 /= scalingFactor;
-    bbox.x2 /= scalingFactor;
-    bbox.y1 /= scalingFactor;
-    bbox.y2 /= scalingFactor;
+    
 }
 
 void printPredictions(const BBoxInfo& b, const std::string& className)

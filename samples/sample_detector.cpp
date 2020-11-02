@@ -21,7 +21,7 @@ int main()
 	config_v3_tiny.file_model_cfg = "../configs/yolov3-tiny.cfg";
 	config_v3_tiny.file_model_weights = "../configs/yolov3-tiny.weights";
 	config_v3_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v3_tiny.inference_precison = FP32;
+	config_v3_tiny.inference_precison = INT8;
 
 	Config config_v4;
 	config_v4.net_type = YOLOV4;
@@ -37,17 +37,18 @@ int main()
 	config_v4_tiny.file_model_cfg = "../configs/yolov4-tiny.cfg";
 	config_v4_tiny.file_model_weights = "../configs/yolov4-tiny.weights";
 	config_v4_tiny.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v4_tiny.inference_precison = FP32;
+	config_v4_tiny.inference_precison = INT8;
 
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5s.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5s.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-3.0/yolov5x.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5x.weights";
+	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;
 
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v4);
+	detector->init(config_v5);
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::vector<BatchResult> batch_res;

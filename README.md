@@ -39,6 +39,17 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 | yolov5l-640x640 | 1080ti | 20ms |  /   | 15ms |
 | yolov5x-640x640 | 1080ti | 30ms |  /   | 23ms |
 
+### Jetson NX with Jetpack4.4.1(load person and dog)
+|      model      |  gpu   | fp32 | fp16 | INT8 |
+| :-------------: | :----: | :--: | :--: | :--: |
+| yolov3 | nx | ms  |  /   | ms  |
+| yolov3-tiny | nx | 14ms/23ms  |  8ms/15ms   | 12ms/19ms  |
+| yolov4-tiny | nx | 13ms/23ms  |  7ms/16ms   | 7ms/15ms  |
+| yolov4 | nx | 111ms/125ms  |  55ms/65ms  | 47ms/57ms  |
+| yolov5s | nx | 47ms/88ms |  33ms/74ms   | 28ms/64ms |
+| yolov5m | nx | 110ms/145ms |  63ms/101ms   | 49ms/91ms |
+| yolov5l | nx | 205ms/242ms |  95ms/123ms   | 76ms/118ms |
+| yolov5x | nx | 351ms/405ms |  151ms/183ms   | 114ms/149ms |
 </details>
 
 ## WRAPPER

@@ -919,7 +919,7 @@ void Yolo::load_weights_v5(const std::string s_weights_path_,
 }
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
-//	Timer timer;
+	Timer timer;
     assert(batchSize <= m_BatchSize && "Image batch size exceeds TRT engines batch size");
     NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
                                   batchSize * m_InputSize * sizeof(float), cudaMemcpyHostToDevice,
@@ -933,7 +933,7 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
                                       cudaMemcpyDeviceToHost, m_CudaStream));
     }
     cudaStreamSynchronize(m_CudaStream);
-//	timer.out("inference");
+	timer.out("inference");
 }
 
 std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,

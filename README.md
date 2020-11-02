@@ -23,18 +23,23 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [ ] daynamic input size
 
 
-## PLATFORM & PERFORMENCE
+## PLATFORM
 
 - [x] windows 10
 - [x] ubuntu 18.04
 - [x] L4T (Jetson platform)
 
-|     model      |             gpu              | precision | detect time(with pre and post process) |
-| :------------: | :--------------------------: | :-------: | :------------------------------------: |
-| yolov3-416x416 |      jetson nano (15w)       |   FP16    |                 250ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP32    |                 120ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP16    |                  45ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   INT8    |                  35ms                  |
+
+<details><summary><b>BENCHMARK</b></summary>
+
+|      model      |  gpu   | fp32 | fp16 | INT8 |
+| :-------------: | :----: | :--: | :--: | :--: |
+| yolov5s-640x640 | 1080ti | 8ms  |  /   | 7ms  |
+| yolov5m-640x640 | 1080ti | 13ms |  /   | 11ms |
+| yolov5l-640x640 | 1080ti | 20ms |  /   | 15ms |
+| yolov5x-640x640 | 1080ti | 30ms |  /   | 23ms |
+
+</details>
 
 ## WRAPPER
 

@@ -58,7 +58,7 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 		assert(0);
 	}
 
-	m_OrigImage.copyTo(m_MarkedImage);
+	//m_OrigImage.copyTo(m_MarkedImage);
 	m_Height = m_OrigImage.rows;
 	m_Width = m_OrigImage.cols;
 
@@ -86,7 +86,7 @@ DsImage::DsImage(const cv::Mat& mat_image_, const int& inputH, const int& inputW
 	// letterboxing
 	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
 		m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
-	cv::imwrite("letter.jpg", m_LetterboxImage);
+//	cv::imwrite("letter.jpg", m_LetterboxImage);
 	// converting to RGB
 	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 }

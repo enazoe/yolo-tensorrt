@@ -52,6 +52,16 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 |   yolov5m   | 416x416 | nx | 110ms/145ms |  63ms/101ms   | 49ms/91ms |
 | yolov5l | 416x416 | nx | 205ms/242ms |  95ms/123ms   | 76ms/118ms |
 | yolov5x | 416x416 | nx | 351ms/405ms |  151ms/183ms   | 114ms/149ms |
+
+
+### ubuntu 
+|      model      |      size      |  gpu   | fp32 | fp16 | INT8 |
+| :-------------: | :----: | :--: | :--: | :--: | :--: |
+| yolov4 | 416x416 | titanv | 11ms/17ms  |  8ms/15ms  | 7ms/14ms  |
+| yolov5s | 416x416 | titanv | 7ms/22ms |  5ms/20ms   | 5ms/18ms |
+|   yolov5m   | 416x416 | titanv | 9ms/23ms |  8ms/22ms   | 7ms/21ms |
+| yolov5l | 416x416 | titanv | 17ms/28ms |  11ms/23ms   | 11ms/24ms |
+| yolov5x | 416x416 | titanv | 25ms/40ms |  15ms/27ms   | 15ms/27ms |
 </details>
 
 ## WRAPPER

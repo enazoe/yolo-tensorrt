@@ -20,7 +20,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [x] inequal net width and height
 - [x] batch inference
 - [x] support FP32,FP16,INT8
-- [ ] daynamic input size
+- [ ] dynamic input size
 
 
 ## PLATFORM & BENCHMARK

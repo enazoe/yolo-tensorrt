@@ -68,7 +68,7 @@ Yolo::Yolo( const NetworkInfo& networkInfo, const InferParams& inferParams) :
 	{
 		Int8EntropyCalibrator calibrator(m_BatchSize, m_CalibImages, m_CalibImagesFilePath,
 			m_CalibTableFilePath, m_InputSize, m_InputH, m_InputW,
-			m_InputBlobName);
+			m_InputBlobName,m_NetworkType);
 		if ("yolov5" == m_NetworkType)
 		{
 			create_engine_yolov5(nvinfer1::DataType::kINT8, &calibrator);
@@ -537,7 +537,7 @@ void parse_spp_args(const std::string s_args_, int &n_filters_, std::vector<int>
 	size_t pos = 0;
 	std::string token;
 	std::string delimiter = ",";
-	bool w = 0;
+	bool w = false;
 	while ((pos = s_args.find(delimiter)) != std::string::npos) 
 	{
 		token = s_args.substr(0, pos);
@@ -903,7 +903,7 @@ void Yolo::load_weights_v5(const std::string s_weights_path_,
 	std::string line;
 	while (std::getline(file,line))
 	{
-		if(line.size()==0)continue;
+		if(line.empty())continue;
 		std::stringstream iss(line);
 		std::string wts_name;
 		iss >> wts_name ;
@@ -919,7 +919,7 @@ void Yolo::load_weights_v5(const std::string s_weights_path_,
 }
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
 {
-//	Timer timer;
+	Timer timer;
     assert(batchSize <= m_BatchSize && "Image batch size exceeds TRT engines batch size");
     NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
                                   batchSize * m_InputSize * sizeof(float), cudaMemcpyHostToDevice,
@@ -933,7 +933,7 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize)
                                       cudaMemcpyDeviceToHost, m_CudaStream));
     }
     cudaStreamSynchronize(m_CudaStream);
-//	timer.out("inference");
+	timer.out("inference");
 }
 
 std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
@@ -962,12 +962,12 @@ std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(const std:
 
     while (getline(file, line))
     {
-        if (line.size() == 0) continue;
+        if (line.empty()) continue;
         if (line.front() == '#') continue;
         line = trim(line);
         if (line.front() == '[')
         {
-            if (block.size() > 0)
+            if (!block.empty())
             {
                 blocks.push_back(block);
                 block.clear();
@@ -1241,9 +1241,9 @@ void Yolo::destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights)
     if (m_ModelStream) m_ModelStream->destroy();
 
     // deallocate the weights
-    for (uint32_t i = 0; i < trtWeights.size(); ++i)
+    for (auto & trtWeight : trtWeights)
     {
-        if (trtWeights[i].count > 0) free(const_cast<void*>(trtWeights[i].values));
+        if (trtWeight.count > 0) free(const_cast<void*>(trtWeight.values));
     }
 }
 

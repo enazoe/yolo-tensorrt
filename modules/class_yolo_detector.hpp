@@ -44,26 +44,27 @@ public:
 	void detect(const std::vector<cv::Mat>	&vec_image,
 				std::vector<BatchResult> &vec_batch_result)
 	{
+		Timer timer;
 		std::vector<DsImage> vec_ds_images;
 		vec_batch_result.clear();
 		vec_batch_result.resize(vec_image.size());
 		for (const auto &img:vec_image)
 		{
-			vec_ds_images.emplace_back(img, _p_net->getInputH(), _p_net->getInputW());
+			vec_ds_images.emplace_back(img, _vec_net_type[_config.net_type], _p_net->getInputH(), _p_net->getInputW());
 		}
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
+		timer.out("pre");
 		_p_net->doInference(trtInput.data, vec_ds_images.size());
+		timer.reset();
 		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
 			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
-	//		Timer timer;
 			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
 				binfo,
 				_p_net->getNumClasses(),
 				_vec_net_type[_config.net_type]);
-	//		timer.out("nms");
-			if (0 == remaining.size())
+			if (remaining.empty())
 			{
 				continue;
 			}
@@ -82,6 +83,7 @@ public:
 			}
 			vec_batch_result[i] = vec_result;
 		}
+		timer.out("post");
 	}
 
 private:

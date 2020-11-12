@@ -11,7 +11,6 @@ std::vector<BBoxInfo> YoloV4::decodeTensor(const int imageIdx, const int imageH,
 	float	scale_w = 1.f;
 	int	xOffset = 0;
 	int yOffset = 0;
-	calcuate_letterbox_message(m_InputH, m_InputW, imageH, imageW, scale_h, scale_w, xOffset, yOffset);
 
 	const float* detections = &tensor.hostBuffer[imageIdx * tensor.volume];
 

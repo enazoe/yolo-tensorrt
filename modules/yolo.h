@@ -241,7 +241,7 @@ protected:
 	}
 
 	inline void add_bbox_proposal(const float bx, const float by, const float bw, const float bh,
-		const uint32_t stride_h_, const uint32_t stride_w_,const float scaleH, const float scaleW, const float xoffset_,const float yoffset, const int maxIndex, const float maxProb,
+		const uint32_t stride_h_, const uint32_t stride_w_, const float scaleH, const float scaleW, const float xoffset_, const float yoffset, const int maxIndex, const float maxProb,
 		const uint32_t 	image_w, const uint32_t image_h,
 		std::vector<BBoxInfo>& binfo)
 	{
@@ -251,7 +251,18 @@ protected:
 		{
 			return;
 		}
-		cvt_box(scaleH,scaleW,xoffset_,yoffset, bbi.box);
+		if ("yolov5" == m_NetworkType)
+		{
+			cvt_box(scaleH, scaleW, xoffset_, yoffset, bbi.box);
+		}
+		else
+		{
+			bbi.box.x1 = ((float)bbi.box.x1 / (float)m_InputW)*(float)image_w;
+			bbi.box.y1 = ((float)bbi.box.y1 / (float)m_InputH)*(float)image_h;
+			bbi.box.x2 = ((float)bbi.box.x2 / (float)m_InputW)*(float)image_w;
+			bbi.box.y2 = ((float)bbi.box.y2 / (float)m_InputH)*(float)image_h;
+		}
+		
 		bbi.label = maxIndex;
 		bbi.prob = maxProb;
 		bbi.classId = getClassId(maxIndex);

@@ -86,13 +86,13 @@ DsImage::DsImage(const cv::Mat& mat_image_, const std::string &s_net_type_, cons
 			m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
 		//	cv::imwrite("letter.jpg", m_LetterboxImage);
 		// converting to RGB
-		cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+		//cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 	}
 	else
 	{
 		cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_CUBIC);
 		// converting to RGB
-		cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+		//cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 	}
 	
 }
@@ -149,13 +149,13 @@ DsImage::DsImage(const std::string& path, const std::string &s_net_type_, const 
 			m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
 		//	cv::imwrite("letter.jpg", m_LetterboxImage);
 		// converting to RGB
-		cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+	//	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 	}
 	else
 	{
 		cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0, cv::INTER_CUBIC);
 		// converting to RGB
-		cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+	//	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 	}
 }
 

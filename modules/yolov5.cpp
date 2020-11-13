@@ -7,9 +7,6 @@ YoloV5::YoloV5(
 	const InferParams &infer_params_) :
 	Yolo( network_info_, infer_params_) {}
 
-
-
-
 std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH, const int imageW, const TensorInfo& tensor)
 {
 	float	scale_h = 1.f;

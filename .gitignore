@@ -23,3 +23,4 @@ api/
 *.pt
 *.onnx
 .ipynb_checkpoints
+*.idea

@@ -455,6 +455,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 		config->setFlag(nvinfer1::BuilderFlag::kINT8);
      //   m_Builder->setInt8Calibrator(calibrator);
 		config->setInt8Calibrator(calibrator);
+		config->setTacticSources(1U << static_cast<uint32_t>(TacticSource::kCUBLAS) | 1U << static_cast<uint32_t>(TacticSource::kCUBLAS_LT));
     }
     else if (dataType == nvinfer1::DataType::kHALF)
     {
@@ -856,6 +857,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		config->setFlag(nvinfer1::BuilderFlag::kINT8);
 		//   m_Builder->setInt8Calibrator(calibrator);
 		config->setInt8Calibrator(calibrator);
+		config->setTacticSources(1U << static_cast<uint32_t>(TacticSource::kCUBLAS) | 1U << static_cast<uint32_t>(TacticSource::kCUBLAS_LT));
 	}
 	else if (dataType == nvinfer1::DataType::kHALF)
 	{

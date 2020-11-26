@@ -251,7 +251,7 @@ protected:
 		{
 			return;
 		}
-		if ("yolov5" == m_NetworkType)
+		if (("yolov5" == m_NetworkType) || ("yolov4-scaled" == m_NetworkType))
 		{
 			cvt_box(scaleH, scaleW, xoffset_, yoffset, bbi.box);
 		}

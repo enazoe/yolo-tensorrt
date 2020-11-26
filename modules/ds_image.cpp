@@ -58,7 +58,7 @@ DsImage::DsImage(const cv::Mat& mat_image_, const std::string &s_net_type_, cons
 		std::cout << "Non RGB images are not supported "<< std::endl;
 		assert(0);
 	}
-	if ("yolov5" == s_net_type_)
+	if (("yolov5" == s_net_type_)||("yolov4-scaled" == s_net_type_))
 	{
 		// resize the DsImage with scale
 		float dim = std::max(m_Height, m_Width);

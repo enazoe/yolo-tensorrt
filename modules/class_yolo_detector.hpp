@@ -9,6 +9,7 @@
 #include "yolov3.h"
 #include "yolov4.h"
 #include "yolov5.h"
+#include "yolov4_scaled.h"
 
 #include <experimental/filesystem>
 #include <fstream>
@@ -22,13 +23,9 @@ class YoloDectector
 {
 public:
 	YoloDectector()
-	{
-
-	}
+	= default;
 	~YoloDectector()
-	{
-
-	}
+	= default;
 
 	void init(const Config &config)
 	{
@@ -138,6 +135,10 @@ private:
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV5(_yolo_info,_infer_param) };
 		}
+		else if (_config.net_type == YOLOV4_SCALED)
+		{
+			_p_net = std::unique_ptr<Yolo>{ new YoloV4Scaled(_yolo_info,_infer_param) };
+		}
 		else
 		{
 			assert(false && "Unrecognised network_type.");
@@ -148,7 +149,7 @@ private:
 	Config _config;
 	NetworkInfo _yolo_info;
 	InferParams _infer_param;
-	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny","yolov4","yolov4-tiny","yolov5" };
+	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny","yolov4","yolov4-tiny","yolov5","yolov4-scaled" };
 	std::vector<std::string> _vec_precision{ "kINT8","kHALF","kFLOAT" };
 	std::unique_ptr<Yolo> _p_net = nullptr;
 	Timer _m_timer;

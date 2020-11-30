@@ -149,6 +149,7 @@ protected:
     // TRT specific members
 	//Logger glogger;
     uint32_t m_BatchSize = 1;
+	uint32_t m_new_coords = 0;
     nvinfer1::INetworkDefinition* m_Network;
     nvinfer1::IBuilder* m_Builder ;
     nvinfer1::IHostMemory* m_ModelStream;

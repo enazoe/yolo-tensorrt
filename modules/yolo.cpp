@@ -152,7 +152,7 @@ std::vector<int> split_layer_index(const std::string &s_,const std::string &deli
 
 void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibrator* calibrator)
 {
-	if (fileExists(m_EnginePath))return;
+	//if (fileExists(m_EnginePath))return;
 	std::vector<float> weights = loadWeights(m_WtsFilePath, m_NetworkType);
     std::vector<nvinfer1::Weights> trtWeights;
     int weightPtr = 0;
@@ -1005,7 +1005,16 @@ void Yolo::parseConfigBlocks()
             m_InputH = std::stoul(block.at("height"));
             m_InputW = std::stoul(block.at("width"));
             m_InputC = std::stoul(block.at("channels"));
-			m_BatchSize = std::stoi(trim(block.at("batch")));
+			//batch
+			if (block.find("batch") != block.end())
+			{
+				m_BatchSize = std::stoi(trim(block.at("batch")));
+			}
+			//yolov4-csp
+			if (block.find("new_coords")!=block.end())
+			{
+				m_new_coords = std::stoi(trim(block.at("new_coords")));
+			}
          //   assert(m_InputW == m_InputH);
             m_InputSize = m_InputC * m_InputH * m_InputW;
         }
@@ -1042,6 +1051,7 @@ void Yolo::parseConfigBlocks()
             if ((m_NetworkType == "yolov3") ||
 				(m_NetworkType == "yolov3-tiny") ||
 				(m_NetworkType == "yolov4") ||
+				(m_NetworkType == "yolov4-scaled") ||
 				(m_NetworkType == "yolov4-tiny"))
             {
                 assert((block.find("mask") != block.end())

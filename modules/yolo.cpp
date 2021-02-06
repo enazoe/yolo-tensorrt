@@ -497,6 +497,40 @@ int make_division(const float f_in_, const int n_divisor_)
 	return ceil(f_in_ / n_divisor_)*n_divisor_;
 }
 
+void parse_c3_args(const std::string s_args_, int &n_out_ch_, bool &b_shourt_cut_)
+{
+	std::string s_args = s_args_;
+	while (!s_args.empty())
+	{
+		auto npos = s_args.find_first_of(',');
+		if (npos != std::string::npos)
+		{
+			n_out_ch_ = std::stoi(trim(s_args.substr(0, npos)));
+			s_args.erase(0, npos + 1);
+		}
+		else
+		{
+			try
+			{
+				n_out_ch_ = std::stoi(trim(s_args.substr(0, npos)));
+			}
+			catch (const std::exception&)
+			{
+
+			}
+			if ("False" == trim(s_args))
+			{
+				b_shourt_cut_ = false;
+			}
+			else if ("True" == trim(s_args))
+			{
+				b_shourt_cut_ = true;
+			}
+			break;
+		}
+	}
+}
+
 void parse_bottleneck_args(const std::string s_args_, int &n_out_ch_, bool &b_shourt_cut_)
 {
 	std::string s_args = s_args_;
@@ -704,6 +738,24 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			tensorOutputs.push_back(out->getOutput(0));
 			printLayerInfo(layerIndex, "Conv", inputVol, outputVol, "");
 		}//end Conv
+		else if ("C3" == m_configBlocks.at(i).at("type"))
+		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int filters = 0;
+			bool short_cut =true;
+			int number = std::stoi(m_configBlocks[i]["number"]);
+			parse_c3_args(m_configBlocks[i]["args"], filters, short_cut);
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			int n_depth = (number > 1) ? (std::max(int(round(_f_depth_multiple *number)), 1)) : number;
+			std::string s_model_name = "model." + std::to_string(i- 1);
+			auto out = C3(trtWeights,s_model_name, model_wts, m_Network, previous, n_out_channel, n_out_channel, n_depth, short_cut);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "C3", inputVol, outputVol, "");
+		}// bottleneckCSP
 		else if ("BottleneckCSP" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());

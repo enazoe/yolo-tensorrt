@@ -220,6 +220,17 @@ nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
 	nvinfer1::INetworkDefinition* network_,
 	const std::string s_act_ = "hardswish");
 
+nvinfer1::ILayer * C3(std::vector<nvinfer1::Weights> &trtWeights_,
+    std::string s_model_name_,
+    std::map<std::string, std::vector<float>> &map_wts_,
+    nvinfer1::INetworkDefinition* network_,
+    nvinfer1::ITensor* input_,
+    const int c2_,
+    const int n_depth_ = 1,
+    const bool b_short_cut_ = true,
+    const int group_ = 1,
+    const float e_ = 0.5);
+
 nvinfer1::ILayer * layer_bottleneck_csp(std::vector<nvinfer1::Weights> &trtWeights_,
 	std::string s_model_name_,
 	std::map<std::string, std::vector<float>> &map_wts_,

@@ -824,6 +824,14 @@ nvinfer1::ILayer * layer_act(nvinfer1::ITensor* input_,
 		assert(act != nullptr);
 		return act;
 	}
+	else if (s_act_ == "silu")
+	{
+		auto sig = network_->addActivation(*input_, nvinfer1::ActivationType::kSIGMOID);
+		assert(sig != nullptr);
+		auto act = network_->addElementWise(*input_, *sig->getOutput(0), ElementWiseOperation::kPROD);
+		assert(act != nullptr);
+		return act;
+	}
 	return nullptr;
 }
 
@@ -883,6 +891,34 @@ nvinfer1::ILayer * layer_conv(std::vector<nvinfer1::Weights> &trtWeights_,
 	trtWeights_.push_back(convWt);
 	trtWeights_.push_back(convBias);
 	return conv;
+}
+
+nvinfer1::ILayer * C3(std::vector<nvinfer1::Weights> &trtWeights_,
+    std::string s_model_name_,
+    std::map<std::string, std::vector<float>> &map_wts_,
+    nvinfer1::INetworkDefinition* network_,
+    nvinfer1::ITensor* input_,
+    const int c2_,
+    const int n_depth_,
+    const bool b_short_cut_,
+    const int group_,
+    const float e_ )
+{
+    int c_ = (int)((float)c2_ * e_);
+    auto cv1 = layer_conv_bn_act(trtWeights_, s_model_name_ +".cv1", map_wts_, input_, network_, c_, 1, 1, 1, true, true, "silu");
+    auto cv2 = layer_conv_bn_act(trtWeights_, s_model_name_ +".cv2", map_wts_, input_, network_, c_, 1, 1, 1, true, true, "silu");
+    auto out = cv1;
+    for (int d = 0; d < n_depth_; ++d) {
+        std::string m_name = s_model_name_ + ".m." + std::to_string(d);
+	out = layer_bottleneck(trtWeights_, m_name, map_wts_, network_, out->getOutput(0), c_, b_short_cut_, group_, 1.f);
+    }
+    nvinfer1::ITensor** concatInputs = reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) *2));
+    concatInputs[0] = out->getOutput(0);
+    concatInputs[1] = cv2->getOutput(0);
+    auto cat = layer_concate(concatInputs, 2, 0, network_);
+
+    auto cv3 = layer_conv_bn_act(trtWeights_, s_model_name_ +".cv3", map_wts_, cat->getOutput(0), network_, c2_, 1, 1, 1, true, true, "silu");
+    return cv3;
 }
 
 nvinfer1::ILayer * layer_bottleneck_csp(std::vector<nvinfer1::Weights> &trtWeights_,

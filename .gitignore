@@ -24,3 +24,4 @@ api/
 *.onnx
 .ipynb_checkpoints
 *.idea
+Dockerfile

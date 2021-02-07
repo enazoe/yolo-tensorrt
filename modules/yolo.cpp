@@ -701,7 +701,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		}
 		else if ("Focus" == m_configBlocks.at(i).at("type"))
 		{
-			std::cout << "Reading [Focus] ..." << std::endl;
 			std::string inputVol = dimsToString(previous->getDimensions());
 			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
 			int filters = args[0];
@@ -741,7 +740,6 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		}//end Conv
 		else if ("C3" == m_configBlocks.at(i).at("type"))
 		{
-			std::cout << "Reading [C3] ..." << std::endl;
 			std::string inputVol = dimsToString(previous->getDimensions());
 			int filters = 0;
 			bool short_cut =true;
@@ -1155,13 +1153,11 @@ void Yolo::parseConfigBlocks()
 
 void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::string>> &vec_block_)
 {
-	std::cout << "parsing config v5..." << std::endl;
 	std::vector<float> vec_anchors;
 	for (const auto &block : vec_block_)
 	{
 		if ("net" == block.at("type"))
 		{
-			std::cout << "reading [net] ..." << std::endl;
 			assert((block.find("height") != block.end())
 				&& "Missing 'height' param in network cfg");
 			assert((block.find("width") != block.end()) && "Missing 'width' param in network cfg");
@@ -1204,7 +1200,6 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 		}
 		else if ("Detect" == block.at("type"))
 		{
-			std::cout << "reading [Detect] ..." << std::endl;
 			assert((block.find("from") != block.end())
 				&& "Missing 'from' param in network cfg");
 			std::string from = block.at("from");

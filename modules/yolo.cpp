@@ -755,7 +755,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			std::string outputVol = dimsToString(previous->getDimensions());
 			tensorOutputs.push_back(out->getOutput(0));
 			printLayerInfo(layerIndex, "C3", inputVol, outputVol, "");
-		}// bottleneckCSP
+		}// end C3
 		else if ("BottleneckCSP" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());

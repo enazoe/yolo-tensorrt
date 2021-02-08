@@ -44,6 +44,7 @@ int main()
 	config_v5.detect_thresh = 0.5;
 	config_v5.file_model_cfg = "../configs/yolov5-4.0/yolov5s.cfg";
 	config_v5.file_model_weights = "../configs/yolov5-4.0/yolov5s.weights";
+	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;
 
 	std::unique_ptr<Detector> detector(new Detector());

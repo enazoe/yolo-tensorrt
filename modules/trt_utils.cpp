@@ -955,7 +955,7 @@ nvinfer1::ILayer * layer_bottleneck_csp(std::vector<nvinfer1::Weights> &trtWeigh
 	concatInputs[1] = cv2->getOutput(0);
 	auto cat = layer_concate(concatInputs, 2, 0,network_);
 	auto bn = layer_bn(trtWeights_, s_model_name_, map_wts_, cat->getOutput(0), 2 * c_, network_);
-	auto act = layer_act(bn->getOutput(0), network_,"silu");
+	auto act = layer_act(bn->getOutput(0), network_,"leaky");
 	//cv4
 	auto cv4 = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv4", map_wts_, act->getOutput(0), network_, c2_, 1);
 	return cv4;

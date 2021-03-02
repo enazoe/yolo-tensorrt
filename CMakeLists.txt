@@ -20,7 +20,7 @@ find_package(OpenCV REQUIRED)
 file(GLOB_RECURSE sources modules/*.hpp modules/*.cpp modules/*.h modules/*.cu extra/*.h)
 add_library(detector SHARED ${sources})
 target_include_directories(detector PRIVATE extra/ modules/ ${OpenCV_INCLUDE_DIRS} ${CUDA_TOOLKIT_ROOT_DIR}/include)
-target_link_libraries(detector nvinfer nvinfer_plugin nvcaffe_parser "stdc++fs")
+target_link_libraries(detector nvinfer nvinfer_plugin nvparsers "stdc++fs")
 
 #sample
 add_executable(yolo-trt samples/sample_detector.cpp)				  

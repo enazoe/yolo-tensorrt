@@ -34,6 +34,13 @@ This is tensorrt c++ api implementation of yolov5.
     
     transformed models
 
+    |  model   |                             .cfg                             |                           .weights                           |
+    | :------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+    | yolov5s6 | [yolov5s6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5s6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5m6 | [yolov5m6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5m6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5l6 | [yolov5l6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5l6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov56  | [yolov5x6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5x.6weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    
     |    model     |                            .yaml                             |                             .pt                              |                             .cfg                             |                           .weights                           |
     | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
     | yolov5s-v4.0 | [yolov5s.yaml](https://github.com/ultralytics/yolov5/releases/tag/v4.0) | [yolov5s.pt](https://github.com/ultralytics/yolov5/releases/tag/v4.0) | [yolov5s.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5s.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |

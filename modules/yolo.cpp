@@ -1227,13 +1227,20 @@ void Yolo::parse_cfg_blocks_v5(const  std::vector<std::map<std::string, std::str
 				outputTensor.numBBoxes = static_cast<uint32_t>(outputTensor.masks.size());
 				outputTensor.numClasses = _n_classes;
 				outputTensor.blobName = "yolo_" + std::to_string(i);
-				outputTensor.grid_h = (m_InputH / 32) * pow(2 ,2-i);
-				outputTensor.grid_w = (m_InputW / 32) * pow(2 ,2-i);
+				if (i < 3)
+				{
+					outputTensor.grid_h = (m_InputH / 32) * pow(2 ,2-i);
+					outputTensor.grid_w = (m_InputW / 32) * pow(2 ,2-i);
+				}
+				else
+				{
+					outputTensor.grid_h = (m_InputH / 32) /2;
+					outputTensor.grid_w = (m_InputW / 32) /2;
+				}
 				outputTensor.stride_h = m_InputH / outputTensor.grid_h;
 				outputTensor.stride_w = m_InputW / outputTensor.grid_w;
 				outputTensor.volume = outputTensor.grid_h * outputTensor.grid_w
 					*(outputTensor.numBBoxes*(5 + outputTensor.numClasses));
-
 				m_OutputTensors.push_back(outputTensor);
 
 				if (m_ClassNames.empty())

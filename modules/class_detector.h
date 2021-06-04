@@ -12,7 +12,7 @@ struct Result
 	cv::Rect rect;
 };
 
-typedef std::vector<Result> BatchResult;
+using BatchResult = std::vector<Result>;
 
 enum ModelType
 {

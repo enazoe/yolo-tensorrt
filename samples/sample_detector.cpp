@@ -28,7 +28,7 @@ int main()
 	config_v4.file_model_cfg = "../configs/yolov4.cfg";
 	config_v4.file_model_weights = "../configs/yolov4.weights";
 	config_v4.calibration_image_list_file_txt = "../configs/calibration_images.txt";
-	config_v4.inference_precison =INT8;
+	config_v4.inference_precison = FP32;
 	config_v4.detect_thresh = 0.5;
 
 	Config config_v4_tiny;
@@ -48,7 +48,7 @@ int main()
 	config_v5.inference_precison = FP32;
 
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v5);
+	detector->init(config_v4);
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::vector<BatchResult> batch_res;

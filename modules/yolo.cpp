@@ -1053,10 +1053,12 @@ void Yolo::parseConfigBlocks()
             assert((block.find("width") != block.end()) && "Missing 'width' param in network cfg");
             assert((block.find("channels") != block.end())
                    && "Missing 'channels' param in network cfg");
+            assert((block.find("batch") != block.end())
+                   && "Missing 'batch' param in network cfg");
 
-            m_InputH = std::stoul(block.at("height"));
-            m_InputW = std::stoul(block.at("width"));
-            m_InputC = std::stoul(block.at("channels"));
+            m_InputH = std::stoul(trim(block.at("height")));
+            m_InputW = std::stoul(trim(block.at("width")));
+            m_InputC = std::stoul(trim(block.at("channels")));
 			m_BatchSize = std::stoi(trim(block.at("batch")));
          //   assert(m_InputW == m_InputH);
             m_InputSize = m_InputC * m_InputH * m_InputW;

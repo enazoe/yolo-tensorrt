@@ -84,7 +84,7 @@ int main()
 			cv::imshow("image"+std::to_string(i), batch_img[i]);
 			if (save_img == true) {
 				cv::imwrite("result"+std::to_string(i)+".jpg", batch_img[i]);
-				save_img = false
+				save_img = false;
 			}
 		}
 		cv::waitKey(10);

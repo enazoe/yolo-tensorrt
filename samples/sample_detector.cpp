@@ -2,6 +2,7 @@
 #include "class_detector.h"
 
 #include <memory>
+#include <string>
 #include <thread>
 
 
@@ -42,18 +43,19 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-5.0/yolov5s6.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-5.0/yolov5s6.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-5.0/yolov5s.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-5.0/yolov5s.weights";
 	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;
 
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v4);
+	detector->init(config_v5);
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::vector<BatchResult> batch_res;
 	Timer timer;
-	for (;;)
+	bool save_img = true;
+	for (int i = 1; i <= 3; i++)
 	{
 		//prepare batch data
 		std::vector<cv::Mat> batch_img;
@@ -80,6 +82,10 @@ int main()
 			}
 			cv::namedWindow("image" + std::to_string(i), cv::WINDOW_NORMAL);
 			cv::imshow("image"+std::to_string(i), batch_img[i]);
+			if (save_img == true) {
+				cv::imwrite("result"+std::to_string(i)+".jpg", batch_img[i]);
+				save_img = false
+			}
 		}
 		cv::waitKey(10);
 	}

@@ -48,17 +48,20 @@ public:
 		std::vector<DsImage> vec_ds_images;
 		vec_batch_result.clear();
 		vec_batch_result.resize(vec_image.size());
+		// pre : resize + pad + make tensor rt input
 		for (const auto &img:vec_image)
 		{
 			vec_ds_images.emplace_back(img, _vec_net_type[_config.net_type], _p_net->getInputH(), _p_net->getInputW());
 		}
 		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
 		timer.out("pre");
+		// inference
 		_p_net->doInference(trtInput.data, vec_ds_images.size());
 		timer.reset();
 		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
+			// fansuan
 			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
 			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
 				binfo,
@@ -68,6 +71,7 @@ public:
 			{
 				continue;
 			}
+			// draw
 			std::vector<Result> vec_result(0);
 			for (const auto &b : remaining)
 			{

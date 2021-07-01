@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1) 
-project(yolo-trt VERSION 1.0)            
+project(yolo-trt VERSION 1.0)   
+set(CMAKE_CUDA_COMPILE "/usr/loacl/cuda/bin/nvcc")         
 enable_language(CUDA)
 
 set(CMAKE_CXX_COMPILIER "/usr/bin/g++")

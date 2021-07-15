@@ -150,6 +150,5 @@ private:
 
 ## Contact
 
-qq group id: 1151955802
-
-<img src="./configs/qq_group.png" style="zoom:50%;" />
+qq group id 2: 672431649
+qq group id 1: 1151955802

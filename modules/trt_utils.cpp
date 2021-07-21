@@ -32,6 +32,7 @@ using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 REGISTER_TENSORRT_PLUGIN(ChunkPluginCreator);
 REGISTER_TENSORRT_PLUGIN(HardswishPluginCreator);
+REGISTER_TENSORRT_PLUGIN(YoloLayerPluginCreator);
 
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
 						const int& inputH,
@@ -323,7 +324,7 @@ std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<B
     return out;
 }
 
-nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFactory* pluginFactory,
+nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, /*PluginFactory* pluginFactory,*/
                                      Logger& logger)
 {
     // reading the model in memory
@@ -345,7 +346,7 @@ nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFacto
 
     nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(logger);
     nvinfer1::ICudaEngine* engine
-        = runtime->deserializeCudaEngine(modelMem, modelSize, pluginFactory);
+        = runtime->deserializeCudaEngine(modelMem, modelSize/*, pluginFactory*/);
     free(modelMem);
     runtime->destroy();
     std::cout << "Loading Complete!" << std::endl;
@@ -427,13 +428,15 @@ void displayDimType(const nvinfer1::Dims d)
     std::cout << "(" << d.nbDims << ") ";
     for (int i = 0; i < d.nbDims; ++i)
     {
-        switch (d.type[i])
-        {
-        case nvinfer1::DimensionType::kSPATIAL: std::cout << "kSPATIAL "; break;
-        case nvinfer1::DimensionType::kCHANNEL: std::cout << "kCHANNEL "; break;
-        case nvinfer1::DimensionType::kINDEX: std::cout << "kINDEX "; break;
-        case nvinfer1::DimensionType::kSEQUENCE: std::cout << "kSEQUENCE "; break;
-        }
+		
+   //     switch (d.type[i])
+   //     {
+			////nvinfer1::DimensionOperation::
+   //     case nvinfer1::DimensionOperation::kSPATIAL: std::cout << "kSPATIAL "; break;
+   //     case nvinfer1::DimensionOperation::kCHANNEL: std::cout << "kCHANNEL "; break;
+   //     case nvinfer1::DimensionOperation::kINDEX: std::cout << "kINDEX "; break;
+   //     case nvinfer1::DimensionOperation::kSEQUENCE: std::cout << "kSEQUENCE "; break;
+   //     }
     }
     std::cout << std::endl;
 }

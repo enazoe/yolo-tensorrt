@@ -9,6 +9,7 @@
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(DetectPluginCreator);
 
+
 Yolo::Yolo( const NetworkInfo& networkInfo, const InferParams& inferParams) :
 	m_NetworkType(networkInfo.networkType),
 	m_ConfigFilePath(networkInfo.configFilePath),
@@ -36,9 +37,9 @@ Yolo::Yolo( const NetworkInfo& networkInfo, const InferParams& inferParams) :
 	m_Context(nullptr),
 	m_InputBindingIndex(-1),
 	m_CudaStream(nullptr),
-	m_PluginFactory(new PluginFactory),
-	m_TinyMaxpoolPaddingFormula(new YoloTinyMaxpoolPaddingFormula),
 	_n_yolo_ind(0)
+//	m_PluginFactory(new PluginFactory),
+//	m_TinyMaxpoolPaddingFormula(new YoloTinyMaxpoolPaddingFormula),
 {
 	// m_ClassNames = loadListFromTextFile(m_LabelsFilePath);
 
@@ -95,8 +96,8 @@ Yolo::Yolo( const NetworkInfo& networkInfo, const InferParams& inferParams) :
 		assert(0);
 	}
 
-	assert(m_PluginFactory != nullptr);
-	m_Engine = loadTRTEngine(m_EnginePath, m_PluginFactory, m_Logger);
+	//assert(m_PluginFactory != nullptr);
+	m_Engine = loadTRTEngine(m_EnginePath,/* m_PluginFactory,*/ m_Logger);
 	assert(m_Engine != nullptr);
 	m_Context = m_Engine->createExecutionContext();
 	assert(m_Context != nullptr);
@@ -125,13 +126,13 @@ Yolo::~Yolo()
         m_Engine = nullptr;
     }
 
-    if (m_PluginFactory)
+   /* if (m_PluginFactory)
     {
         m_PluginFactory->destroy();
         m_PluginFactory = nullptr;
-    }
+    }*/
 
-    m_TinyMaxpoolPaddingFormula.reset();
+//    m_TinyMaxpoolPaddingFormula.reset();
 }
 
 std::vector<int> split_layer_index(const std::string &s_,const std::string &delimiter_)
@@ -169,15 +170,15 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 
     nvinfer1::ITensor* data = m_Network->addInput(
         m_InputBlobName.c_str(), nvinfer1::DataType::kFLOAT,
-        nvinfer1::DimsCHW{static_cast<int>(m_InputC), static_cast<int>(m_InputH),
-                          static_cast<int>(m_InputW)});
+		nvinfer1::Dims{ 3,static_cast<int>(m_InputC), static_cast<int>(m_InputH),
+						  static_cast<int>(m_InputW) });
     assert(data != nullptr);
     // Add elementwise layer to normalize pixel values 0-1
     nvinfer1::Dims divDims{
         3,
-        {static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW)},
-        {nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
-         nvinfer1::DimensionType::kSPATIAL}};
+        {static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW)}
+        /*{nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
+         nvinfer1::DimensionType::kSPATIAL}*/};
     nvinfer1::Weights divWeights{nvinfer1::DataType::kFLOAT, nullptr,
                                  static_cast<int64_t>(m_InputSize)};
     float* divWt = new float[m_InputSize];
@@ -197,8 +198,8 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
 	if (/*"yolov3" == m_NetworkType || */"yolov3-tiny" == m_NetworkType)
 	{
 		// Set the output dimensions formula for pooling layers
-		assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
-		m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());
+	//	assert(m_TinyMaxpoolPaddingFormula && "Tiny maxpool padding formula not created");
+	//	m_Network->setPoolingOutputDimensionsFormula(m_TinyMaxpoolPaddingFormula.get());
 	}
 
     // build the network using the network API
@@ -290,13 +291,14 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
                 * (curYoloTensor.numBBoxes * (5 + curYoloTensor.numClasses));
             std::string layerName = "yolo_" + std::to_string(outputTensorCount);
             curYoloTensor.blobName = layerName;
-            nvinfer1::IPlugin* yoloPlugin
-                = new YoloLayerV3(m_OutputTensors.at(outputTensorCount).numBBoxes,
+            nvinfer1::IPluginV2* yoloPlugin
+                = new nvinfer1::YoloLayer(m_OutputTensors.at(outputTensorCount).numBBoxes,
                                   m_OutputTensors.at(outputTensorCount).numClasses,
                                   m_OutputTensors.at(outputTensorCount).grid_h,
                                   m_OutputTensors.at(outputTensorCount).grid_w);
             assert(yoloPlugin != nullptr);
-            nvinfer1::IPluginLayer* yolo = m_Network->addPlugin(&previous, 1, *yoloPlugin);
+            nvinfer1::IPluginV2Layer* yolo = m_Network->addPluginV2(&previous, 1, *yoloPlugin);
+			
             assert(yolo != nullptr);
             yolo->setName(layerName.c_str());
             std::string inputVol = dimsToString(previous->getDimensions());
@@ -405,7 +407,7 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
             // Add same padding layers
             if (m_configBlocks.at(i).at("size") == "2" && m_configBlocks.at(i).at("stride") == "1")
             {
-                m_TinyMaxpoolPaddingFormula->addSamePaddingLayer("maxpool_" + std::to_string(i));
+              //  m_TinyMaxpoolPaddingFormula->addSamePaddingLayer("maxpool_" + std::to_string(i));
             }
             std::string inputVol = dimsToString(previous->getDimensions());
             nvinfer1::ILayer* out = netAddMaxpool(i, m_configBlocks.at(i), previous, m_Network);
@@ -463,20 +465,21 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType, Int8EntropyCalibr
      //   m_Builder->setHalf2Mode(true);
     }
 
-    m_Builder->allowGPUFallback(true);
+  //  m_Builder->allowGPUFallback(true);
     int nbLayers = m_Network->getNbLayers();
     int layersOnDLA = 0;
  //   std::cout << "Total number of layers: " << nbLayers << std::endl;
-    for (int i = 0; i < nbLayers; i++)
+   /* for (int i = 0; i < nbLayers; i++)
     {
         nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
+		m_Builder->
         if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
         {
             m_Builder->setDeviceType(curLayer, nvinfer1::DeviceType::kDLA);
             layersOnDLA++;
             std::cout << "Set layer " << curLayer->getName() << " to run on DLA" << std::endl;
         }
-    }
+    }*/
  //   std::cout << "Total number of layers on DLA: " << layersOnDLA << std::endl;
 
     // Build the engine
@@ -652,8 +655,8 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	std::vector<nvinfer1::Weights> trtWeights;
 	int channels = m_InputC;
 	m_Builder = nvinfer1::createInferBuilder(m_Logger);
-	nvinfer1::IBuilderConfig* config = m_Builder->createBuilderConfig();
-	m_Network = m_Builder->createNetworkV2(0U);
+
+	m_Network = m_Builder->createNetworkV2(0);
 	if ((dataType == nvinfer1::DataType::kINT8 && !m_Builder->platformHasFastInt8())
 		|| (dataType == nvinfer1::DataType::kHALF && !m_Builder->platformHasFastFp16()))
 	{
@@ -663,15 +666,15 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	nvinfer1::ITensor* data = m_Network->addInput(
 		m_InputBlobName.c_str(),
 		nvinfer1::DataType::kFLOAT,
-		nvinfer1::DimsCHW{ static_cast<int>(m_InputC), static_cast<int>(m_InputH),
+		nvinfer1::Dims{3, static_cast<int>(m_InputC), static_cast<int>(m_InputH),
 		static_cast<int>(m_InputW) });
 	assert(data != nullptr);
 	// Add elementwise layer to normalize pixel values 0-1
 	nvinfer1::Dims divDims{
 		3,
-		{ static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW) },
+		{ static_cast<int>(m_InputC), static_cast<int>(m_InputH), static_cast<int>(m_InputW) }/*,
 		{ nvinfer1::DimensionType::kCHANNEL, nvinfer1::DimensionType::kSPATIAL,
-		nvinfer1::DimensionType::kSPATIAL } };
+		nvinfer1::DimensionType::kSPATIAL }*/ };
 
 	nvinfer1::Weights divWeights{ nvinfer1::DataType::kFLOAT,
 		nullptr,
@@ -901,6 +904,7 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 	<< " precision : " << m_Precision << " and batch size :" << m_BatchSize << std::endl;*/
 
 	m_Builder->setMaxBatchSize(m_BatchSize);
+	nvinfer1::IBuilderConfig* config = m_Builder->createBuilderConfig();
 	config->setMaxWorkspaceSize(1<<20);
 	if (dataType == nvinfer1::DataType::kINT8)
 	{
@@ -917,20 +921,20 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 		//   m_Builder->setHalf2Mode(true);
 	}
 
-	m_Builder->allowGPUFallback(true);
-	int nbLayers = m_Network->getNbLayers();
-	int layersOnDLA = 0;
-	//   std::cout << "Total number of layers: " << nbLayers << std::endl;
-	for (int i = 0; i < nbLayers; i++)
-	{
-		nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
-		if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
-		{
-			m_Builder->setDeviceType(curLayer, nvinfer1::DeviceType::kDLA);
-			layersOnDLA++;
-			std::cout << "Set layer " << curLayer->getName() << " to run on DLA" << std::endl;
-		}
-	}
+//	m_Builder->allowGPUFallback(true);
+	//int nbLayers = m_Network->getNbLayers();
+	//int layersOnDLA = 0;
+	////   std::cout << "Total number of layers: " << nbLayers << std::endl;
+	//for (int i = 0; i < nbLayers; i++)
+	//{
+	//	nvinfer1::ILayer* curLayer = m_Network->getLayer(i);
+	//	if (m_DeviceType == "kDLA" && m_Builder->canRunOnDLA(curLayer))
+	//	{
+	//		m_Builder->setDeviceType(curLayer, nvinfer1::DeviceType::kDLA);
+	//		layersOnDLA++;
+	//		std::cout << "Set layer " << curLayer->getName() << " to run on DLA" << std::endl;
+	//	}
+	//}
 	//   std::cout << "Total number of layers on DLA: " << layersOnDLA << std::endl;
 
 	// Build the engine

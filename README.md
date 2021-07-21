@@ -12,8 +12,8 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 ![](./configs/yolo-trt.png)
 
 - [x] yolov5s , yolov5m , yolov5l , yolov5x ,yolov5-p6 [tutorial](yolov5_tutorial.md)
-- [x] yolov4 , yolov4-tiny
-- [x] yolov3 , yolov3-tiny
+- [x] yolov4 
+- [x] yolov3 
 
 ## Features
 

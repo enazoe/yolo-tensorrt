@@ -42,13 +42,13 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-5.0/yolov5s6.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-5.0/yolov5s6.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-4.0/yolov5s.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-4.0/yolov5s.weights";
 	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;
 
 	std::unique_ptr<Detector> detector(new Detector());
-	detector->init(config_v4);
+	detector->init(config_v3);
 	cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
 	cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
 	std::vector<BatchResult> batch_res;
@@ -60,7 +60,7 @@ int main()
 		cv::Mat temp0 = image0.clone();
 		cv::Mat temp1 = image1.clone();
 		batch_img.push_back(temp0);
-		//batch_img.push_back(temp1);
+		batch_img.push_back(temp1);
 
 		//detect
 		timer.reset();

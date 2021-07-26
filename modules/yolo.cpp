@@ -1016,7 +1016,7 @@ std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(const std:
 
     while (getline(file, line))
     {
-        if (line.empty()) continue;
+        if (line.empty() || line == "\r") continue;
         if (line.front() == '#') continue;
         line = trim(line);
         if (line.front() == '[')

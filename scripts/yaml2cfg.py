@@ -1,6 +1,6 @@
 import torch
 import argparse
-from utils.google_utils import *
+from utils.downloads import *
 import struct
 import yaml
 

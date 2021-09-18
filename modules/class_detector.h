@@ -16,12 +16,8 @@ using BatchResult = std::vector<Result>;
 
 enum ModelType
 {
-	YOLOV2 = 0,
 	YOLOV3,
-	YOLOV2_TINY,
-	YOLOV3_TINY,
 	YOLOV4,
-	YOLOV4_TINY,
 	YOLOV5
 };
 
@@ -34,13 +30,13 @@ enum Precision
 
 struct Config
 {
-	std::string file_model_cfg					= "configs/yolov3.cfg";
+	std::string file_model_cfg					= "configs/yolov4.cfg";
 
-	std::string file_model_weights				= "configs/yolov3.weights";
+	std::string file_model_weights				= "configs/yolov4.weights";
 
 	float detect_thresh							= 0.9;
 
-	ModelType	net_type						= YOLOV3;
+	ModelType	net_type						= YOLOV4;
 
 	Precision	inference_precison				= FP32;
 	

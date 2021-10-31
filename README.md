@@ -2,7 +2,7 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/enazoe/yolo-tensorrt) ![GitHub forks](https://img.shields.io/github/forks/enazoe/yolo-tensorrt)  ![GitHub watchers](https://img.shields.io/github/watchers/enazoe/yolo-tensorrt)  [![Gitter](https://badges.gitter.im/yolo-tensorrt/community.svg)](https://gitter.im/yolo-tensorrt/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-__news:__ 2021.06.04:yolov5-v5.0 support
+__news:__ 2021.10.31:yolov5-v6.0 support
 
 ![](./configs/result.jpg)
 ## INTRODUCTION
@@ -11,7 +11,7 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 
 ![](./configs/yolo-trt.png)
 
-- [x] yolov5s , yolov5m , yolov5l , yolov5x ,yolov5-p6 [tutorial](yolov5_tutorial.md)
+- [x] yolov5n ,yolov5s , yolov5m , yolov5l , yolov5x ,yolov5-p6 [tutorial](yolov5_tutorial.md)
 - [x] yolov4 
 - [x] yolov3 
 

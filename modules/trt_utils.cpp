@@ -1000,6 +1000,61 @@ nvinfer1::ILayer * layer_spp(std::vector<nvinfer1::Weights> &trtWeights_,
 	return cv2;
 }
 
+nvinfer1::ILayer * layer_sppf(std::vector<nvinfer1::Weights> &trtWeights_,
+	std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	int k_)
+{
+	std::vector<int> chw = dims2chw(input_->getDimensions());
+	int c1 = chw[0];//dims2chw(input_->getDimensions())[0];
+	int c_ = c1 / 2;
+	nvinfer1::ILayer * x = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv1", map_wts_, input_, network_, c_, 1);
+	nvinfer1::ITensor** concatInputs
+		= reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * 4));
+	concatInputs[0] = x->getOutput(0);
+
+	//y1
+	nvinfer1::IPoolingLayer* y1
+		= network_->addPoolingNd(*x->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y1);
+	int pad = k_ / 2;
+	y1->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y1->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[1] = y1->getOutput(0);
+
+	//y2
+	nvinfer1::IPoolingLayer* y2
+		= network_->addPoolingNd(*y1->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y2);
+	y2->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y2->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[2] = y2->getOutput(0);
+
+	//y3
+	nvinfer1::IPoolingLayer* y3
+		= network_->addPoolingNd(*y2->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y3);
+	y3->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y3->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[3] = y3->getOutput(0);
+
+	nvinfer1::IConcatenationLayer* concat
+		= network_->addConcatenation(concatInputs, 4);
+	//concat->setAxis(0);
+	assert(concat != nullptr);
+	nvinfer1::ILayer *cv2 = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv2", map_wts_, concat->getOutput(0), network_, c2_, 1);
+	assert(cv2 != nullptr);
+	return cv2;
+}
 
 nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
 	std::map<std::string, std::vector<float>> &map_wts_,

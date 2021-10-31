@@ -26,8 +26,8 @@ int main()
 	Config config_v5;
 	config_v5.net_type = YOLOV5;
 	config_v5.detect_thresh = 0.5;
-	config_v5.file_model_cfg = "../configs/yolov5-5.0/yolov5s6.cfg";
-	config_v5.file_model_weights = "../configs/yolov5-5.0/yolov5s6.weights";
+	config_v5.file_model_cfg = "../configs/yolov5-6.0/yolov5n.cfg";
+	config_v5.file_model_weights = "../configs/yolov5-6.0/yolov5n.weights";
 	config_v5.calibration_image_list_file_txt = "../configs/calibration_images.txt";
 	config_v5.inference_precison = FP32;
 
@@ -44,7 +44,7 @@ int main()
 		cv::Mat temp0 = image0.clone();
 		cv::Mat temp1 = image1.clone();
 		batch_img.push_back(temp0);
-	//	batch_img.push_back(temp1);
+		//batch_img.push_back(temp1);
 
 		//detect
 		timer.reset();

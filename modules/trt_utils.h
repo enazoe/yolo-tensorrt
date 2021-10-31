@@ -253,6 +253,14 @@ nvinfer1::ILayer * layer_spp(std::vector<nvinfer1::Weights> &trtWeights_,
 	const int c2_,
 	const std::vector<int> &vec_args_);
 
+nvinfer1::ILayer * layer_sppf(std::vector<nvinfer1::Weights> &trtWeights_,
+	std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	int k_);
+
 nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
 	std::map<std::string, std::vector<float>> &map_wts_,
 	nvinfer1::INetworkDefinition* network_,

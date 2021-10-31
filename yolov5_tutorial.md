@@ -8,7 +8,7 @@ This is tensorrt c++ api implementation of yolov5.
 
 ## Feature
 
-- [x] yolov5 s,m,l,x
+- [x] yolov5 n,s,m,l,x
 - [x] inequal net input  size
 - [x] batch inference
 - [x] support FP32,FP16,INT8
@@ -36,10 +36,11 @@ This is tensorrt c++ api implementation of yolov5.
 
     |  model   |                             .cfg                             |                           .weights                           |
     | :------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-    | yolov5s6 | [yolov5s6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5s6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
-    | yolov5m6 | [yolov5m6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5m6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
-    | yolov5l6 | [yolov5l6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5l6.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
-    | yolov56  | [yolov5x6.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5x.6weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5n | [yolov5n.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5n.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5s | [yolov5s.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5s.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5m | [yolov5m.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5m.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5l | [yolov5l.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5l.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
+    | yolov5x  | [yolov5x.cfg](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) | [yolov5x.weights](https://mega.nz/folder/7iYTSARZ#-T3xXHBjRAUhOwdEe_ajKw) |
     
     |    model     |                            .yaml                             |                             .pt                              |                             .cfg                             |                           .weights                           |
     | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |

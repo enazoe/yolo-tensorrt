@@ -793,6 +793,24 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
 			tensorOutputs.push_back(out->getOutput(0));
 			printLayerInfo(layerIndex, "SPP", inputVol, outputVol, "");
 		}//end SPP
+		else if ("SPPF" == m_configBlocks.at(i).at("type"))
+		{
+			std::string inputVol = dimsToString(previous->getDimensions());
+			int filters = 0;
+			std::vector<int> vec_k;
+			//parse_spp_args(m_configBlocks[i]["args"], filters, vec_k);
+			std::vector<int> args = parse_int_list(m_configBlocks[i]["args"]);
+			filters = args[0];
+			int n_out_channel = (n_output != filters) ? make_division(filters*_f_width_multiple, 8) : filters;
+			std::string s_model_name = "model." + std::to_string(i - 1);
+			auto out = layer_sppf(trtWeights, s_model_name, model_wts, m_Network, previous, n_out_channel, args[1]);
+			previous = out->getOutput(0);
+			assert(previous != nullptr);
+			channels = getNumChannels(previous);
+			std::string outputVol = dimsToString(previous->getDimensions());
+			tensorOutputs.push_back(out->getOutput(0));
+			printLayerInfo(layerIndex, "SPP", inputVol, outputVol, "");
+		}//end SPPF
 		else if ("nn.Upsample" == m_configBlocks.at(i).at("type"))
 		{
 			std::string inputVol = dimsToString(previous->getDimensions());

@@ -150,5 +150,5 @@ private:
 
 ## Contact
 
-qq group id 2: 672431649
-qq group id 1: 1151955802
+微信关注公众号EigenVison，回复yolo获取交流群号
+![](./configs/qrcode.jpeg)

@@ -10,7 +10,6 @@
 #include "yolov4.h"
 #include "yolov5.h"
 
-#include <experimental/filesystem>
 #include <fstream>
 #include <string>
 #include <chrono>
@@ -21,14 +20,8 @@
 class YoloDectector
 {
 public:
-	YoloDectector()
-	{
-
-	}
-	~YoloDectector()
-	{
-
-	}
+	YoloDectector() = default;
+	~YoloDectector() = default;
 
 	void init(const Config &config)
 	{
@@ -44,46 +37,42 @@ public:
 	void detect(const std::vector<cv::Mat>	&vec_image,
 				std::vector<BatchResult> &vec_batch_result)
 	{
-		Timer timer;
 		std::vector<DsImage> vec_ds_images;
 		vec_batch_result.clear();
-		vec_batch_result.resize(vec_image.size());
+		if (vec_batch_result.capacity() < vec_image.size())
+			vec_batch_result.reserve(vec_image.size());
 		for (const auto &img:vec_image)
 		{
 			vec_ds_images.emplace_back(img, _vec_net_type[_config.net_type], _p_net->getInputH(), _p_net->getInputW());
 		}
-		cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),_p_net->getInputW());
-		timer.out("pre");
-		_p_net->doInference(trtInput.data, vec_ds_images.size());
-		timer.reset();
-		for (uint32_t i = 0; i < vec_ds_images.size(); ++i)
+        blobFromDsImages(vec_ds_images, m_blob, _p_net->getInputH(),_p_net->getInputW());
+        _p_net->doInference(m_blob.data, static_cast<uint32_t>(vec_ds_images.size()));
+		for (size_t i = 0; i < vec_ds_images.size(); ++i)
 		{
 			auto curImage = vec_ds_images.at(i);
-			auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(), curImage.getImageWidth());
-			auto remaining = nmsAllClasses(_p_net->getNMSThresh(),
-				binfo,
-				_p_net->getNumClasses(),
-				_vec_net_type[_config.net_type]);
-			if (remaining.empty())
+			auto binfo = _p_net->decodeDetections(static_cast<int>(i), curImage.getImageHeight(), curImage.getImageWidth());
+            auto remaining = (_p_net->getNMSThresh() > 0) ? nmsAllClasses(_p_net->getNMSThresh(), binfo, _p_net->getNumClasses(), _vec_net_type[_config.net_type]) : binfo;
+
+			std::vector<Result> vec_result;
+			if (!remaining.empty())
 			{
-				continue;
+				vec_result.reserve(remaining.size());
+				for (const auto &b : remaining)
+				{
+					const int x = cvRound(b.box.x1);
+					const int y = cvRound(b.box.y1);
+					const int w = cvRound(b.box.x2 - b.box.x1);
+					const int h = cvRound(b.box.y2 - b.box.y1);
+					vec_result.emplace_back(b.label, b.prob, cv::Rect(x, y, w, h));
+				}
 			}
-			std::vector<Result> vec_result(0);
-			for (const auto &b : remaining)
-			{
-				Result res;
-				res.id = b.label;
-				res.prob = b.prob;
-				const int x = b.box.x1;
-				const int y = b.box.y1;
-				const int w = b.box.x2 - b.box.x1;
-				const int h = b.box.y2 - b.box.y1;
-				res.rect = cv::Rect(x, y, w, h);
-				vec_result.push_back(res);
-			}
-			vec_batch_result[i] = vec_result;
+			vec_batch_result.emplace_back(vec_result);
 		}
-		timer.out("post");
+	}
+
+	cv::Size get_input_size() const
+	{
+		return cv::Size(_p_net->getInputH(), _p_net->getInputW());
 	}
 
 private:
@@ -118,19 +107,16 @@ private:
 		_infer_param.calibImagesPath = "";
 		_infer_param.probThresh = _config.detect_thresh;
 		_infer_param.nmsThresh = 0.5;
+		_infer_param.batchSize = _config.batch_size;
 	}
 
 	void build_net()
 	{
-		if ((_config.net_type == YOLOV2) || (_config.net_type == YOLOV2_TINY))
-		{
-			_p_net = std::unique_ptr<Yolo>{ new YoloV2( _yolo_info, _infer_param) };
-		}
-		else if ((_config.net_type == YOLOV3) || (_config.net_type == YOLOV3_TINY))
+		if (_config.net_type == YOLOV3)
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV3(_yolo_info, _infer_param) };
 		}
-		else if( (_config.net_type == YOLOV4) || (_config.net_type == YOLOV4_TINY))
+		else if (_config.net_type == YOLOV4 || _config.net_type == YOLOV4_TINY)
 		{
 			_p_net = std::unique_ptr<Yolo>{ new YoloV4(_yolo_info,_infer_param) };
 		}
@@ -148,10 +134,11 @@ private:
 	Config _config;
 	NetworkInfo _yolo_info;
 	InferParams _infer_param;
-	std::vector<std::string> _vec_net_type{ "yolov2","yolov3","yolov2-tiny","yolov3-tiny","yolov4","yolov4-tiny","yolov5" };
+	std::vector<std::string> _vec_net_type{ "yolov3", "yolov4", "yolov4-tiny", "yolov5" };
 	std::vector<std::string> _vec_precision{ "kINT8","kHALF","kFLOAT" };
 	std::unique_ptr<Yolo> _p_net = nullptr;
 	Timer _m_timer;
+    cv::Mat m_blob;
 };
 
 

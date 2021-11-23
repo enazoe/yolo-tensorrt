@@ -25,25 +25,80 @@ SOFTWARE.
 
 #include "trt_utils.h"
 #include <NvInferRuntimeCommon.h>
+
+#ifdef HAVE_FILESYSTEM
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
+
 #include <fstream>
 #include <iomanip>
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 REGISTER_TENSORRT_PLUGIN(ChunkPluginCreator);
 REGISTER_TENSORRT_PLUGIN(HardswishPluginCreator);
+REGISTER_TENSORRT_PLUGIN(YoloLayerPluginCreator);
 
-cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
-						const int& inputH,
-                         const int& inputW)
+void blobFromDsImages(const std::vector<DsImage>& inputImages, cv::Mat& blob, const int& inputH, const int& inputW)
 {
-    std::vector<cv::Mat> letterboxStack(inputImages.size());
+#if 0
+    std::vector<cv::Mat> letterboxStack;
+    letterboxStack.reserve(inputImages.size());
     for (uint32_t i = 0; i < inputImages.size(); ++i)
     {
-        inputImages.at(i).getLetterBoxedImage().copyTo(letterboxStack.at(i));
+		letterboxStack.emplace_back(inputImages[i].getLetterBoxedImage());
     }
-    return cv::dnn::blobFromImages(letterboxStack, 1.0, cv::Size(inputW, inputH),
-                                   cv::Scalar(0.0, 0.0, 0.0),true);
+    blob = cv::dnn::blobFromImages(letterboxStack, 1.0, cv::Size(inputW, inputH), cv::Scalar(0.0, 0.0, 0.0), true);
+
+#else
+    cv::Size size(inputW, inputH);
+    constexpr bool swapRB = true;
+    constexpr int ddepth = CV_32F;
+    constexpr int nch = 3;
+    size_t nimages = inputImages.size();
+
+    int sz[] = { (int)nimages, nch, inputH, inputW };
+    blob.create(4, sz, ddepth);
+    cv::Mat ch[4];
+
+    for (size_t i = 0; i < nimages; ++i)
+    {
+        const cv::Mat& image = inputImages[i].getLetterBoxedImage();
+
+        for (int j = 0; j < nch; ++j)
+        {
+            ch[j] = cv::Mat(size, ddepth, blob.ptr((int)i, j));
+        }
+
+        if(swapRB)
+            std::swap(ch[0], ch[2]);
+
+        for (int y = 0; y < image.rows; ++y)
+        {
+            const uchar* imPtr = image.ptr(y);
+            float* ch0 = ch[0].ptr<float>(y);
+            float* ch1 = ch[1].ptr<float>(y);
+            float* ch2 = ch[2].ptr<float>(y);
+            constexpr size_t stepSize = 32;
+            for (int x = 0; x < image.cols; x += stepSize)
+            {
+                for (size_t k = 0; k < stepSize; ++k)
+                {
+                    ch0[k] = static_cast<float>(imPtr[0 + 3 * k]);
+                    ch1[k] = static_cast<float>(imPtr[1 + 3 * k]);
+                    ch2[k] = static_cast<float>(imPtr[2 + 3 * k]);
+                }
+                imPtr += 3 * stepSize;
+                ch0 += stepSize;
+                ch1 += stepSize;
+                ch2 += stepSize;
+            }
+        }
+    }
+#endif
 }
 
 static void leftTrim(std::string& s)
@@ -82,7 +137,7 @@ float clamp(const float val, const float minVal, const float maxVal)
 
 bool fileExists(const std::string fileName, bool verbose)
 {
-    if (!std::experimental::filesystem::exists(std::experimental::filesystem::path(fileName)))
+    if (!fs::exists(fs::path(fileName)))
     {
         if (verbose) std::cout << "File does not exist : " << fileName << std::endl;
         return false;
@@ -104,10 +159,10 @@ BBox convertBBoxNetRes(const float& bx, const float& by, const float& bw, const 
     b.y1 = y - bh / 2;
     b.y2 = y + bh / 2;
 
-    b.x1 = clamp(b.x1, 0, netW);
-    b.x2 = clamp(b.x2, 0, netW);
-    b.y1 = clamp(b.y1, 0, netH);
-    b.y2 = clamp(b.y2, 0, netH);
+    b.x1 = clamp(b.x1, 0.f, static_cast<float>(netW));
+    b.x2 = clamp(b.x2, 0.f, static_cast<float>(netW));
+    b.y1 = clamp(b.y1, 0.f, static_cast<float>(netH));
+    b.y2 = clamp(b.y2, 0.f, static_cast<float>(netH));
 
     return b;
 }
@@ -127,9 +182,7 @@ void convertBBoxImgRes(const float scalingFactor,
 	bbox.x2 /= scalingFactor;
 	bbox.y1 /= scalingFactor;
 	bbox.y2 /= scalingFactor;
-	std::cout << "convertBBoxImgRes" << std::endl;
-
-    
+	std::cout << "convertBBoxImgRes" << std::endl;    
 }
 
 void printPredictions(const BBoxInfo& b, const std::string& className)
@@ -156,11 +209,9 @@ std::vector<std::string> loadListFromTextFile(const std::string filename)
     {
         if (line.empty())
             continue;
-
         else
             list.push_back(trim(line));
     }
-
     return list;
 }
 
@@ -323,7 +374,7 @@ std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<B
     return out;
 }
 
-nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFactory* pluginFactory,
+nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, /*PluginFactory* pluginFactory,*/
                                      Logger& logger)
 {
     // reading the model in memory
@@ -345,7 +396,7 @@ nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFacto
 
     nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(logger);
     nvinfer1::ICudaEngine* engine
-        = runtime->deserializeCudaEngine(modelMem, modelSize, pluginFactory);
+        = runtime->deserializeCudaEngine(modelMem, modelSize/*, pluginFactory*/);
     free(modelMem);
     runtime->destroy();
     std::cout << "Loading Complete!" << std::endl;
@@ -369,7 +420,7 @@ nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath, PluginFacto
 //		file.ignore(15);
 //	}
 //}
-std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& networkType)
+std::vector<float> loadWeights(const std::string weightsFilePath, const std::string& /*networkType*/)
 {
     assert(fileExists(weightsFilePath));
     std::cout << "Loading pre-trained weights..." << std::endl;
@@ -427,13 +478,15 @@ void displayDimType(const nvinfer1::Dims d)
     std::cout << "(" << d.nbDims << ") ";
     for (int i = 0; i < d.nbDims; ++i)
     {
-        switch (d.type[i])
-        {
-        case nvinfer1::DimensionType::kSPATIAL: std::cout << "kSPATIAL "; break;
-        case nvinfer1::DimensionType::kCHANNEL: std::cout << "kCHANNEL "; break;
-        case nvinfer1::DimensionType::kINDEX: std::cout << "kINDEX "; break;
-        case nvinfer1::DimensionType::kSEQUENCE: std::cout << "kSEQUENCE "; break;
-        }
+		
+   //     switch (d.type[i])
+   //     {
+			////nvinfer1::DimensionOperation::
+   //     case nvinfer1::DimensionOperation::kSPATIAL: std::cout << "kSPATIAL "; break;
+   //     case nvinfer1::DimensionOperation::kCHANNEL: std::cout << "kCHANNEL "; break;
+   //     case nvinfer1::DimensionOperation::kINDEX: std::cout << "kINDEX "; break;
+   //     case nvinfer1::DimensionOperation::kSEQUENCE: std::cout << "kSEQUENCE "; break;
+   //     }
     }
     std::cout << std::endl;
 }
@@ -933,8 +986,6 @@ nvinfer1::ILayer * layer_bottleneck_csp(std::vector<nvinfer1::Weights> &trtWeigh
 	const float e_ )
 {
 	std::vector<int> chw=dims2chw(input_->getDimensions());
-	//int c1 = dims2chw(input_->getDimensions())[0];
-	int c1 = chw[0];
 	int c_ = int(c2_*0.5);
 	//cv1
 	auto out = layer_conv_bn_act(trtWeights_, s_model_name_ +".cv1", map_wts_, input_, network_, c_, 1);
@@ -988,8 +1039,7 @@ nvinfer1::ILayer * layer_spp(std::vector<nvinfer1::Weights> &trtWeights_,
 		pool->setStrideNd(nvinfer1::DimsHW{1, 1});
 		concatInputs[ind + 1] = pool->getOutput(0);
 	}
-	nvinfer1::IConcatenationLayer* concat
-		= network_->addConcatenation(concatInputs, (vec_args_.size()+1));
+	nvinfer1::IConcatenationLayer* concat = network_->addConcatenation(concatInputs, static_cast<int>(vec_args_.size()+1));
 	//concat->setAxis(0);
 	assert(concat != nullptr);
 	nvinfer1::ILayer *cv2 = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv2", map_wts_, concat->getOutput(0), network_, c2_, 1);
@@ -997,6 +1047,61 @@ nvinfer1::ILayer * layer_spp(std::vector<nvinfer1::Weights> &trtWeights_,
 	return cv2;
 }
 
+nvinfer1::ILayer * layer_sppf(std::vector<nvinfer1::Weights> &trtWeights_,
+	std::string s_model_name_,
+	std::map<std::string, std::vector<float>> &map_wts_,
+	nvinfer1::INetworkDefinition* network_,
+	nvinfer1::ITensor* input_,
+	const int c2_,
+	int k_)
+{
+	std::vector<int> chw = dims2chw(input_->getDimensions());
+	int c1 = chw[0];//dims2chw(input_->getDimensions())[0];
+	int c_ = c1 / 2;
+	nvinfer1::ILayer * x = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv1", map_wts_, input_, network_, c_, 1);
+	nvinfer1::ITensor** concatInputs
+		= reinterpret_cast<nvinfer1::ITensor**>(malloc(sizeof(nvinfer1::ITensor*) * 4));
+	concatInputs[0] = x->getOutput(0);
+
+	//y1
+	nvinfer1::IPoolingLayer* y1
+		= network_->addPoolingNd(*x->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y1);
+	int pad = k_ / 2;
+	y1->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y1->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[1] = y1->getOutput(0);
+
+	//y2
+	nvinfer1::IPoolingLayer* y2
+		= network_->addPoolingNd(*y1->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y2);
+	y2->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y2->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[2] = y2->getOutput(0);
+
+	//y3
+	nvinfer1::IPoolingLayer* y3
+		= network_->addPoolingNd(*y2->getOutput(0),
+			nvinfer1::PoolingType::kMAX,
+			nvinfer1::DimsHW{ k_,k_ });
+	assert(y3);
+	y3->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
+	y3->setStrideNd(nvinfer1::DimsHW{ 1, 1 });
+	concatInputs[3] = y3->getOutput(0);
+
+	nvinfer1::IConcatenationLayer* concat
+		= network_->addConcatenation(concatInputs, 4);
+	//concat->setAxis(0);
+	assert(concat != nullptr);
+	nvinfer1::ILayer *cv2 = layer_conv_bn_act(trtWeights_, s_model_name_ + ".cv2", map_wts_, concat->getOutput(0), network_, c2_, 1);
+	assert(cv2 != nullptr);
+	return cv2;
+}
 
 nvinfer1::ILayer *layer_upsample(std::string s_model_name_,
 	std::map<std::string, std::vector<float>> &map_wts_,
@@ -1032,104 +1137,11 @@ nvinfer1::ILayer * layer_conv_bn_act(std::vector<nvinfer1::Weights> &trtWeights_
 	const bool b_bn_,
 	const std::string s_act_)
 {
-	bool bias = (b_bn_ == true) ? false : true;
-	int pad = b_padding_ ? ((n_kernel_size_ - 1) / 2) : 0;
 	std::vector<int> chw = dims2chw(input_->getDimensions());
 
 	//conv
-	nvinfer1::ILayer * conv = nullptr;
-	if (0)
-	{
-		int size = n_filters_ * chw[0] * n_kernel_size_ * n_kernel_size_;
-		nvinfer1::Weights convWt{ nvinfer1::DataType::kFLOAT, nullptr, size };
-		std::vector<float> &vec_conv_wts = map_wts_[s_layer_name_ + ".conv.weight"];
-		float *conv_wts = new float[size];
-		for (int i = 0; i < size; ++i)
-		{
-			conv_wts[i] = vec_conv_wts[i];
-		}
-		assert(size == vec_conv_wts.size());
-		convWt.values = conv_wts;
-		nvinfer1::Weights convBias{ nvinfer1::DataType::kFLOAT, nullptr, 0 };
-		nvinfer1::IConvolutionLayer* conv = network_->addConvolutionNd(
-			*input_,
-			n_filters_,
-			nvinfer1::DimsHW{ n_kernel_size_, n_kernel_size_ },
-			convWt,
-			convBias);
-		assert(conv != nullptr);
-		conv->setPaddingNd(nvinfer1::DimsHW{ pad,pad });
-		conv->setStrideNd(nvinfer1::DimsHW{ n_stride_ ,n_stride_ });
-		conv->setNbGroups(group_);
-		if ((!b_bn_) && ("" == s_act_))
-		{
-			return conv;
-		}
-	}
-	else
-	{
-		conv = layer_conv(trtWeights_,s_layer_name_ + ".conv", map_wts_, input_, network_, n_filters_, n_kernel_size_, n_stride_);
-	}
-	nvinfer1::ILayer* bn = nullptr;
-	if (0)
-	{
-		std::vector<float> &bn_wts = map_wts_[s_layer_name_ + ".bn.weight"];
-		/*for (int i = 0; i < n_filters_; ++i)
-		{
-			bn_wts.push_back([i]);
-		}*/
-		std::vector<float> &bn_bias = map_wts_[s_layer_name_ + ".bn.bias"];
-		/*for (int i = 0; i < n_filters_; ++i)
-		{
-			bn_bias.push_back(vec_wts_[s_layer_name_ + ".bias.weight"][i]);
-		}*/
-		std::vector<float> &bn_mean = map_wts_[s_layer_name_ + ".bn.running_mean"];
-		/*for (int i = 0; i < n_filters_; ++i)
-		{
-			bn_mean.push_back(vec_wts_[s_layer_name_ + ".running_mean.weight"][i]);
-		}*/
-		std::vector<float> &bn_var = map_wts_[s_layer_name_ + ".bn.running_var"];
-		for (int i = 0; i < n_filters_; ++i)
-		{
-			bn_var[i] = sqrt(bn_var[i] + 1.0e-5);
-		}
-		//float bn_num_batches_tracked = map_wts_[s_layer_name_ + ".bn.num_batches_tracked"][0];
-
-		// create the weights
-		nvinfer1::Weights shift{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
-		nvinfer1::Weights scale{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
-		nvinfer1::Weights power{ nvinfer1::DataType::kFLOAT, nullptr, n_filters_ };
-		float* shiftWt = new float[n_filters_];
-		for (int i = 0; i < n_filters_; ++i)
-		{
-			shiftWt[i]
-				= bn_bias.at(i) - ((bn_mean.at(i) * bn_wts.at(i)) / bn_var.at(i));
-		}
-		shift.values = shiftWt;
-		float* scaleWt = new float[n_filters_];
-		for (int i = 0; i < n_filters_; ++i)
-		{
-			scaleWt[i] = bn_wts.at(i) / bn_var[i];
-		}
-		scale.values = scaleWt;
-		float* powerWt = new float[n_filters_];
-		for (int i = 0; i < n_filters_; ++i)
-		{
-			powerWt[i] = 1.0;
-		}
-		power.values = powerWt;
-		// Add the batch norm layers
-		bn = network_->addScale(*conv->getOutput(0), nvinfer1::ScaleMode::kCHANNEL, shift, scale, power);
-		assert(bn != nullptr);
-		if ("" == s_act_)
-		{
-			return bn;
-		}
-	}
-	else
-	{
-		bn = layer_bn(trtWeights_, s_layer_name_, map_wts_, conv->getOutput(0), n_filters_, network_);
-	}//end bn
+	nvinfer1::ILayer *conv = layer_conv(trtWeights_, s_layer_name_ + ".conv", map_wts_, input_, network_, n_filters_, n_kernel_size_, n_stride_);
+	nvinfer1::ILayer* bn = layer_bn(trtWeights_, s_layer_name_, map_wts_, conv->getOutput(0), n_filters_, network_);
 	nvinfer1::ILayer * act = layer_act(bn->getOutput(0), network_,s_act_);
 	return act;
 }
@@ -1167,10 +1179,8 @@ nvinfer1::ILayer* layer_focus(std::vector<nvinfer1::Weights> &trtWeights_,
 nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx,
 									std::map<std::string, std::string>& block,
                                     std::vector<float>& weights,
-                                    std::vector<nvinfer1::Weights>& trtWeights,
-									int& weightPtr,
-                                    int& inputChannels,
-									nvinfer1::ITensor* input,
+                                    std::vector<nvinfer1::Weights>& trtWeights, int& weightPtr,
+                                    int& inputChannels, nvinfer1::ITensor* input,
                                     nvinfer1::INetworkDefinition* network)
 {
     assert(block.at("type") == "convolutional");
@@ -1252,11 +1262,7 @@ nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx,
     nvinfer1::Weights convBias{nvinfer1::DataType::kFLOAT, nullptr, 0};
     trtWeights.push_back(convBias);
     nvinfer1::IConvolutionLayer* conv = network->addConvolution(
-        *input,
-		filters,
-		nvinfer1::DimsHW{kernelSize, kernelSize},
-		convWt,
-		convBias);
+        *input, filters, nvinfer1::DimsHW{kernelSize, kernelSize}, convWt, convBias);
     assert(conv != nullptr);
     std::string convLayerName = "conv_" + std::to_string(layerIdx);
     conv->setName(convLayerName.c_str());
@@ -1314,8 +1320,8 @@ nvinfer1::ILayer* netAddConvBNLeaky(int layerIdx,
 }
 
 nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string>& block,
-                                 std::vector<float>& weights,
-                                 std::vector<nvinfer1::Weights>& trtWeights, int& inputChannels,
+                                 std::vector<float>& /*weights*/,
+                                 std::vector<nvinfer1::Weights>& trtWeights, int& /*inputChannels*/,
                                  nvinfer1::ITensor* input, nvinfer1::INetworkDefinition* network)
 {
     assert(block.at("type") == "upsample");
@@ -1416,8 +1422,6 @@ nvinfer1::ILayer* netAddUpsample(int layerIdx, std::map<std::string, std::string
     return mm2;
 #endif
 }
-
-
 
 void printLayerInfo(std::string layerIndex, std::string layerName, std::string layerInput,
                     std::string layerOutput, std::string weightPtr)

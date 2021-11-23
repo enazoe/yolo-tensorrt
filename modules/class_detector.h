@@ -5,68 +5,73 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-struct Result
-{
-	int		 id		= -1;
-	float	 prob	= 0.f;
-	cv::Rect rect;
-};
+	struct Result
+	{
+		int		 id = -1;
+		float	 prob = 0.f;
+		cv::Rect rect;
 
-using BatchResult = std::vector<Result>;
-
-enum ModelType
-{
-	YOLOV2 = 0,
-	YOLOV3,
-	YOLOV2_TINY,
-	YOLOV3_TINY,
-	YOLOV4,
-	YOLOV4_TINY,
-	YOLOV5
-};
-
-enum Precision
-{
-	INT8 = 0,
-	FP16,
-	FP32
-};
-
-struct Config
-{
-	std::string file_model_cfg					= "configs/yolov3.cfg";
-
-	std::string file_model_weights				= "configs/yolov3.weights";
-
-	float detect_thresh							= 0.9;
-
-	ModelType	net_type						= YOLOV3;
-
-	Precision	inference_precison				= FP32;
+		Result(int id_, float prob_, cv::Rect r)
+			: id(id_), prob(prob_), rect(r)
+		{
+		}
+	};
 	
-	int	gpu_id									= 0;
+	using BatchResult = std::vector<Result>;
 
-	std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
+	enum ModelType
+	{
+        YOLOV3,
+        YOLOV4,
+        YOLOV4_TINY,
+        YOLOV5
+	};
 
-};
+	enum Precision
+	{
+		INT8 = 0,
+		FP16,
+		FP32
+	};
 
-class API Detector
-{
-public:
-	explicit Detector();
+	struct Config
+	{
+		std::string file_model_cfg = "yolov4.cfg";
 
-	~Detector();
+		std::string file_model_weights = "yolov4.weights";
 
-	void init(const Config &config);
+		float detect_thresh = 0.5f;
 
-	void detect(const std::vector<cv::Mat> &mat_image, std::vector<BatchResult> &vec_batch_result);
+		ModelType	net_type = YOLOV4;
 
-private:
-	
-	Detector(const Detector &);
-	const Detector &operator =(const Detector &);
-	class Impl;
-	Impl *_impl;
-};
+		Precision	inference_precison = FP32;
+
+		int	gpu_id = 0;
+
+		uint32_t batch_size = 1;
+
+		std::string calibration_image_list_file_txt = "configs/calibration_images.txt";
+	};
+
+	class API Detector
+	{
+	public:
+		explicit Detector();
+
+		~Detector();
+
+		void init(const Config &config);
+
+		void detect(const std::vector<cv::Mat> &mat_image, std::vector<BatchResult> &vec_batch_result);
+
+		cv::Size get_input_size() const;
+
+	private:
+
+		Detector(const Detector &);
+		const Detector &operator =(const Detector &);
+		class Impl;
+		Impl *_impl = nullptr;
+	};
 
 #endif // !CLASS_QH_DETECTOR_H_

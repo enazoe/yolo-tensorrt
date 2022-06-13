@@ -27,7 +27,6 @@ SOFTWARE.
 #define _YOLO_H_
 
 #include "calibrator.h"
-#include "plugin_factory.h"
 #include "trt_utils.h"
 
 #include "NvInfer.h"
@@ -66,12 +65,13 @@ struct NetworkInfo
  */
 struct InferParams
 {
-    bool printPerfInfo;
-    bool printPredictionInfo;
+    bool printPerfInfo = false;
+    bool printPredictionInfo = false;
     std::string calibImages;
     std::string calibImagesPath;
-    float probThresh;
-    float nmsThresh;
+    float probThresh = 0.5f;
+    float nmsThresh = 0.5f;
+    uint32_t batchSize = 1;
 };
 
 /**
@@ -94,7 +94,6 @@ struct TensorInfo
     int bindingIndex{-1};
     float* hostBuffer{nullptr};
 };
-
 
 class Yolo
 {
@@ -130,10 +129,10 @@ protected:
     const std::string m_InputBlobName;
     std::vector<TensorInfo> m_OutputTensors;
     std::vector<std::map<std::string, std::string>> m_configBlocks;
-    uint32_t m_InputH;
-    uint32_t m_InputW;
-    uint32_t m_InputC;
-    uint64_t m_InputSize;
+    uint32_t m_InputH = 0;
+    uint32_t m_InputW = 0;
+    uint32_t m_InputC = 0;
+    uint64_t m_InputSize = 0;
 	uint32_t _n_classes = 0;
 	float _f_depth_multiple = 0;
 	float _f_width_multiple = 0;
@@ -152,23 +151,22 @@ protected:
 	//Logger glogger;
     uint32_t m_BatchSize = 1;
     nvinfer1::INetworkDefinition* m_Network;
-    nvinfer1::IBuilder* m_Builder ;
+    nvinfer1::IBuilder* m_Builder;
     nvinfer1::IHostMemory* m_ModelStream;
     nvinfer1::ICudaEngine* m_Engine;
     nvinfer1::IExecutionContext* m_Context;
     std::vector<void*> m_DeviceBuffers;
     int m_InputBindingIndex;
     cudaStream_t m_CudaStream;
-    PluginFactory* m_PluginFactory;
-    std::unique_ptr<YoloTinyMaxpoolPaddingFormula> m_TinyMaxpoolPaddingFormula;
 
     virtual std::vector<BBoxInfo> decodeTensor(const int imageIdx, const int imageH,
                                                const int imageW, const TensorInfo& tensor)
         = 0;
 
     inline void addBBoxProposal(const float bx, const float by, const float bw, const float bh,
-                                const uint32_t stride, const float scalingFactor, const float xOffset,
-                                const float yOffset, const int maxIndex, const float maxProb,
+                                const uint32_t stride, const float scalingFactor,
+                                const float /*xOffset*/, const float /*yOffset*/,
+                                const int maxIndex, const float maxProb,
 		const uint32_t 	image_w, const uint32_t image_h,
                                 std::vector<BBoxInfo>& binfo)
     {
@@ -217,10 +215,10 @@ protected:
 		b.y1 = y - bh / 2;
 		b.y2 = y + bh / 2;
 
-		b.x1 = clamp(b.x1, 0, netW);
-		b.x2 = clamp(b.x2, 0, netW);
-		b.y1 = clamp(b.y1, 0, netH);
-		b.y2 = clamp(b.y2, 0, netH);
+		b.x1 = clamp(b.x1, 0.f, static_cast<float>(netW));
+		b.x2 = clamp(b.x2, 0.f, static_cast<float>(netW));
+		b.y1 = clamp(b.y1, 0.f, static_cast<float>(netH));
+		b.y2 = clamp(b.y2, 0.f, static_cast<float>(netH));
 
 		return b;
 	}
@@ -286,10 +284,10 @@ private:
     void writePlanFileToDisk();
 
 private:
-	Timer _timer;
-	void load_weights_v5(const std::string s_weights_path_, std::map<std::string, std::vector<float>> &vec_wts_);
+    Timer _timer;
+    void load_weights_v5(const std::string s_weights_path_, std::map<std::string, std::vector<float>> &vec_wts_);
 
-	int _n_yolo_ind = 0;
+    int _n_yolo_ind = 0;
 };
 
 #endif // _YOLO_H_

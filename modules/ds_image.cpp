@@ -23,27 +23,16 @@ SOFTWARE.
 *
 */
 #include "ds_image.h"
+
+#ifdef HAVE_FILESYSTEM
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 
-DsImage::DsImage() :
-    m_Height(0),
-    m_Width(0),
-    m_XOffset(0),
-    m_YOffset(0),
-    m_ScalingFactor(0.0),
-    m_RNG(cv::RNG(unsigned(std::time(0)))),
-    m_ImageName()
-{
-}
-
-DsImage::DsImage(const cv::Mat& mat_image_, const std::string &s_net_type_, const int& inputH, const int& inputW) :
-	m_Height(0),
-	m_Width(0),
-	m_XOffset(0),
-	m_YOffset(0),
-	m_ScalingFactor(0.0),
-	m_RNG(cv::RNG(unsigned(std::time(0)))),
-	m_ImageName()
+DsImage::DsImage(const cv::Mat& mat_image_, const std::string &s_net_type_, const int& inputH, const int& inputW)
 {
 	m_OrigImage = mat_image_;
 	m_Height = m_OrigImage.rows;
@@ -92,18 +81,11 @@ DsImage::DsImage(const cv::Mat& mat_image_, const std::string &s_net_type_, cons
 		// converting to RGB
 		//cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 	}
-	
 }
-DsImage::DsImage(const std::string& path, const std::string &s_net_type_, const int& inputH, const int& inputW) :
-	m_Height(0),
-	m_Width(0),
-	m_XOffset(0),
-	m_YOffset(0),
-	m_ScalingFactor(0.0),
-	m_RNG(cv::RNG(unsigned(std::time(0)))),
-	m_ImageName()
+
+DsImage::DsImage(const std::string& path, const std::string &s_net_type_, const int& inputH, const int& inputW)
 {
-	m_ImageName = std::experimental::filesystem::path(path).stem().string();
+    m_ImageName = fs::path(path).stem().string();
 	m_OrigImage = cv::imread(path, cv::IMREAD_UNCHANGED);
 	m_Height = m_OrigImage.rows;
 	m_Width = m_OrigImage.cols;
@@ -183,23 +165,20 @@ void DsImage::letterbox(const int& inputH, const int& inputW)
 	assert(2 * m_YOffset + resizeH == inputH);
 
 	// resizing
-	cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0, cv::INTER_CUBIC);
+	cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0, cv::INTER_LINEAR);
 	// letterboxing
 	cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset, m_XOffset,
 		m_XOffset, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
 	//	cv::imwrite("letter.jpg", m_LetterboxImage);
-	// converting to RGB
-	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 }
-
 
 void DsImage::addBBox(BBoxInfo box, const std::string& labelName)
 {
     m_Bboxes.push_back(box);
-    const int x = box.box.x1;
-    const int y = box.box.y1;
-    const int w = box.box.x2 - box.box.x1;
-    const int h = box.box.y2 - box.box.y1;
+    const int x = cvRound(box.box.x1);
+    const int y = cvRound(box.box.y1);
+    const int w = cvRound(box.box.x2 - box.box.x1);
+    const int h = cvRound(box.box.y2 - box.box.y1);
     const cv::Scalar color
         = cv::Scalar(m_RNG.uniform(0, 255), m_RNG.uniform(0, 255), m_RNG.uniform(0, 255));
 

@@ -35,13 +35,13 @@ public:
     Int8EntropyCalibrator(const uint32_t& batchSize, const std::string& calibImages,
                           const std::string& calibImagesPath, const std::string& calibTableFilePath,
                           const uint64_t& inputSize, const uint32_t& inputH, const uint32_t& inputW,
-							const std::string& inputBlobName,const std::string &s_net_type_);
+                          const std::string& inputBlobName, const std::string &s_net_type_);
     virtual ~Int8EntropyCalibrator();
 
-    int getBatchSize() const override { return m_BatchSize; }
-    bool getBatch(void* bindings[], const char* names[], int nbBindings) override;
-    const void* readCalibrationCache(size_t& length) override;
-    void writeCalibrationCache(const void* cache, size_t length) override;
+    int getBatchSize() const noexcept  override { return m_BatchSize; }
+    bool getBatch(void* bindings[], const char* names[], int nbBindings) noexcept  override;
+    const void* readCalibrationCache(size_t& length) noexcept  override;
+    void writeCalibrationCache(const void* cache, size_t length) noexcept  override;
 
 private:
     const uint32_t m_BatchSize;
@@ -50,13 +50,15 @@ private:
     const uint64_t m_InputSize;
     const uint64_t m_InputCount;
     const std::string m_InputBlobName;
-	const std::string _s_net_type;
+    const std::string _s_net_type;
     const std::string m_CalibTableFilePath{nullptr};
     uint32_t m_ImageIndex;
     bool m_ReadCache{true};
     void* m_DeviceInput{nullptr};
     std::vector<std::string> m_ImageList;
     std::vector<char> m_CalibrationCache;
+
+    cv::Mat m_blob;
 };
 
 #endif
